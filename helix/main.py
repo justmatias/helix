@@ -1,13 +1,13 @@
 import typer
 
-from .store import init_store
+from .utils import initialize_storage
 
 app = typer.Typer()
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context) -> None:
-    init_store()
+    initialize_storage()
     if ctx.invoked_subcommand is None:
         typer.echo("Helix — global convention memory. Run `helix --help` for commands.")
 
