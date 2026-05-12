@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from helix.brain import Brain
 from helix.settings import Settings
 
 
@@ -12,3 +13,13 @@ def _patch_storage_settings(tmp_path: Path) -> Generator[None]:
     Settings.HOME_DIRECTORY = tmp_path
     yield
     Settings.HOME_DIRECTORY = old_value
+
+
+@pytest.fixture
+def brain() -> Brain:
+    return Brain()
+
+
+@pytest.fixture
+def _initialize_brain(brain: Brain) -> None:
+    brain.initialize()
