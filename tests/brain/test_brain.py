@@ -96,8 +96,9 @@ def test_list_conventions_filter_no_match(brain: Brain) -> None:
 @pytest.mark.usefixtures("_initialize_brain")
 def test_index_line_for_returns_line(brain: Brain) -> None:
     brain.remember(name="my-conv", body="Always use async.", tags=["python"])
-    assert brain.index_line_for("my-conv") is not None
-    assert "my-conv" in brain.index_line_for("my-conv")  # type: ignore[arg-type]
+    line = brain.index_line_for("my-conv")
+    assert line is not None
+    assert "my-conv" in line
 
 
 @pytest.mark.usefixtures("_initialize_brain")

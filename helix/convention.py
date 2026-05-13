@@ -27,7 +27,7 @@ class Convention:
             tags=self.tags,
             applies_to=self.applies_to,
         )
-        return frontmatter.dumps(post) + "\n"
+        return str(frontmatter.dumps(post)) + "\n"
 
     @classmethod
     def from_markdown(cls, text: str) -> "Convention":

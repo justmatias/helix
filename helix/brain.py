@@ -80,8 +80,9 @@ class Brain:
 
         return self._filter_index_lines_by_tags(lines, tags)
 
+    @staticmethod
     def _filter_index_lines_by_tags(
-        self, lines: list[str], tags: list[str]
+        lines: list[str], tags: list[str]
     ) -> list[str]:
         tags_set = set(tags)
         return [
