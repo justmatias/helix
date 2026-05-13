@@ -81,13 +81,10 @@ class Brain:
         return self._filter_index_lines_by_tags(lines, tags)
 
     @staticmethod
-    def _filter_index_lines_by_tags(
-        lines: list[str], tags: list[str]
-    ) -> list[str]:
+    def _filter_index_lines_by_tags(lines: list[str], tags: list[str]) -> list[str]:
         tags_set = set(tags)
         return [
-            line for line in lines
-            if Convention.tags_from_index_line(line) & tags_set
+            line for line in lines if Convention.tags_from_index_line(line) & tags_set
         ]
 
     def recall(self, query: str, tags: list[str] | None = None) -> list[str]:
