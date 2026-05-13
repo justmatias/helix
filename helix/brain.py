@@ -1,10 +1,7 @@
-import re
 from pathlib import Path
 
 from helix.convention import Convention
 from helix.settings import Settings
-
-INDEX_LINE_REGEX = r"\[([^\]]*)\] —"
 
 
 class Brain:
@@ -86,18 +83,11 @@ class Brain:
     def _filter_index_lines_by_tags(
         self, lines: list[str], tags: list[str]
     ) -> list[str]:
-        filtered_lines = []
-        for line in lines:
-            match = re.search(INDEX_LINE_REGEX, line)
-            if not match:
-                continue
-            line_tags = {
-                tag.strip() for tag in match.group(1).split(",") if tag.strip()
-            }
-            if not line_tags & set(tags):
-                continue
-            filtered_lines.append(line)
-        return filtered_lines
+        tags_set = set(tags)
+        return [
+            line for line in lines
+            if Convention.tags_from_index_line(line) & tags_set
+        ]
 
     def recall(self, query: str, tags: list[str] | None = None) -> list[str]:
         lines = [
