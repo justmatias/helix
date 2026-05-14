@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v2.0.0 (2026-05-14)
+
+### Bug Fixes
+
+- **ci**: Prevent semantic-release from re-triggering CI loop
+  ([`7aa43ea`](https://github.com/justmatias/helix/commit/7aa43ea6f8eb81652eb7d99ae1facdc8aadcde6d))
+
+Add [skip ci] to the release commit message so pushes from python-semantic-release do not trigger a
+  new workflow run.
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+
+### Features
+
+- Breaking change detected [skip ci]
+  ([`ed70a0d`](https://github.com/justmatias/helix/commit/ed70a0dc36f4e7b9d4ea43af2db93ede0e85b788))
+
+- Implement CLI for convention management with commands to remember, list, recall, and forget
+  conventions
+  ([`77fb37b`](https://github.com/justmatias/helix/commit/77fb37bd18bfa11163619c6a416d1ebd48b4fa6d))
+
+
 ## v1.0.0 (2026-05-13)
 
 ### Bug Fixes
@@ -36,6 +58,9 @@
 
 - **docs**: Add implementation plan
   ([`b10b684`](https://github.com/justmatias/helix/commit/b10b684e9412c15db733fa3c6de65005c3107846))
+
+- **release**: Release version 1.0.0
+  ([`bc81d7f`](https://github.com/justmatias/helix/commit/bc81d7fa301c66ff1607542928fc38b75da265e7))
 
 ### Features
 
