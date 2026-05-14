@@ -43,12 +43,35 @@ cd helix
 uv sync
 ```
 
-## CLI usage
+## First steps
+
+After installing, get Helix wired into your agent in two commands:
+
+```bash
+# 1. Hook Helix into your agent (Claude Code, Cursor).
+# Interactive prompt picks the client and scope (global vs project).
+helix install
+
+# 2. Save your first convention.
+helix remember pydantic-validation \
+  "Prefer Pydantic v2 for any external-boundary validation." \
+  --tags python,validation
+```
+
+`helix install` writes a small block into your agent's memory file
+(`~/.claude/CLAUDE.md`, `./CLAUDE.md`, `~/.cursor/rules/helix.mdc`, etc.)
+wrapped in `<!-- helix:start -->` / `<!-- helix:end -->` markers so re-runs
+update in place and `helix uninstall` cleans up cleanly. The block tells the
+agent to run `helix list` at session start and treat the output as global
+coding conventions.
+
+From there, your next agent session will see the conventions automatically.
+
+## CLI reference
 
 ```bash
 # Save a convention
-helix remember --name pydantic-validation --tags python,validation \
-  "Prefer Pydantic v2 for any external-boundary validation."
+helix remember <name> "<body>" --tags <comma,separated> [--applies-to <stacks>]
 
 # List conventions (optionally filtered by tag)
 helix list
@@ -59,9 +82,13 @@ helix recall "validation"
 helix recall "async" --tags python
 
 # Remove a convention
-helix forget pydantic-validation
+helix forget <name>
 
-# Start the MCP server
+# Hook / unhook the agent integration
+helix install
+helix uninstall
+
+# Start the MCP server (coming soon — Step 2)
 helix serve
 ```
 
@@ -78,13 +105,8 @@ helix serve
 
 ### Claude Code setup
 
-Add to your project's `CLAUDE.md`:
-
-```markdown
-On the first turn, call `list_conventions(tags=["python"])` to surface relevant global conventions.
-```
-
-Add to `~/.claude/claude_desktop_config.json` (or your client's MCP config):
+`helix install` writes the agent instruction for you. For the MCP server,
+add to `~/.claude/claude_desktop_config.json` (or your client's MCP config):
 
 ```json
 {

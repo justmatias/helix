@@ -189,11 +189,16 @@ Track build progress here. Items mirror the Build Order phases.
      ### Step 1 — Folder + CLI (MVP)
      - [x] Init Python project (`pyproject.toml`, add `typer` dep)
      - [x] Create `~/.dev_brain/` skeleton on first run: `conventions/`, empty `INDEX.md`
-     - [ ] Define frontmatter schema (`name`, `tags`, `applies_to`) + a tiny parser
-     - [ ] `helix remember --name <slug> --tags a,b "<body>"` → write `conventions/<slug>.md` verbatim, append one line to `INDEX.md`
-     - [ ] `helix list [--tags python]` → print filtered `INDEX.md`
-     - [ ] `helix recall "<query>" [--tags ...]` → shell out to `ripgrep`, return matched snippets with file paths
-     - [ ] `helix forget <slug>` → remove file + its `INDEX.md` line
+     - [x] Define frontmatter schema (`name`, `tags`, `applies_to`) + a tiny parser
+     - [x] `helix remember <slug> "<body>" --tags a,b` → write `conventions/<slug>.md` verbatim, append one line to `INDEX.md`
+     - [x] `helix list [--tags python]` → print filtered `INDEX.md`
+     - [x] `helix recall "<query>" [--tags ...]` → search conventions, return matched snippets with file paths
+     - [x] `helix forget <slug>` → remove file + its `INDEX.md` line
+     - [x] `helix install` / `helix uninstall` → interactive menu (no client/scope flags) that:
+       - auto-detects installed clients (Claude Code, Cursor; defer opencode/Aider)
+       - prompts for client + scope (global vs project)
+       - writes an idempotent snippet wrapped in `<!-- helix:start -->` / `<!-- helix:end -->` markers so re-runs update in place
+       - Step 1 snippet: *"run `helix list` at session start"*; Step 2 will swap in the MCP `list_conventions` instruction
      - [ ] Dogfood for ~1 week before moving to Step 2
 
      ### Step 2 — MCP Server
