@@ -120,7 +120,7 @@ disable_error_code = ["var-annotated"]
 ##################################
 
 [tool.poe.tasks]
-dev = "python helix/cli/main.py"
+cli = "python helix/cli/app.py"
 format = "pre-commit run --all-files --verbose"
 test = "pytest --cov=tests --cov=helix --cov-report=term-missing:skip-covered"
 
