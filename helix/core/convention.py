@@ -1,21 +1,22 @@
 import re
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self
 
 import frontmatter
+from pydantic import BaseModel, ConfigDict, Field
 
 from helix.core.settings import Settings
 
 CONVENTION_REGEX = r"\[([^\]]*)\] —"
 
 
-@dataclass
-class Convention:
+class Convention(BaseModel):
     name: str
     body: str
-    tags: list[str] = field(default_factory=list)
-    applies_to: list[str] = field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    applies_to: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(extra="ignore")
 
     @property
     def file_path(self) -> Path:
@@ -33,15 +34,9 @@ class Convention:
     @classmethod
     def from_markdown(cls, text: str) -> Self:
         post = frontmatter.loads(text)
-        name = post.get("name", "")
-        if not name:
+        if not post.metadata.get("name"):
             raise ValueError("Invalid convention file: missing 'name' field")
-        return cls(
-            name=name,
-            body=post.content,
-            tags=list(post.get("tags", [])),
-            applies_to=list(post.get("applies_to", [])),
-        )
+        return cls.model_validate({"body": post.content, **post.metadata})
 
     def index_line(self) -> str:
         first_line = self.body.strip().splitlines()[0] if self.body.strip() else ""

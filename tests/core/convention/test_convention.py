@@ -45,3 +45,12 @@ def test_convention_index_line_truncates_long_body() -> None:
     convention = Convention(name="long", body="A" * 100, tags=[])
     line = convention.index_line()
     assert "..." in line
+
+
+def test_tags_from_index_line_returns_set() -> None:
+    line = "- [foo](conventions/foo.md) [python, async] — body"
+    assert Convention.tags_from_index_line(line) == {"python", "async"}
+
+
+def test_tags_from_index_line_returns_empty_when_no_match() -> None:
+    assert Convention.tags_from_index_line("no tags in this line") == set()

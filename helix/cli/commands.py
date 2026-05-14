@@ -1,10 +1,10 @@
 import typer
 
-from helix.core.brain import Brain
+from helix.core import Brain
 from helix.utils import parse_csv
 
 
-def command_remember(
+def cmd_remember(
     *,
     body: str,
     name: str,
@@ -20,7 +20,7 @@ def command_remember(
     typer.echo(f"Saved as {path.name}")
 
 
-def command_list(*, tags: str | None) -> None:
+def cmd_list(*, tags: str | None) -> None:
     lines = Brain().list_conventions(tags=parse_csv(tags))
     if not lines:
         typer.echo("No conventions found.")
@@ -29,8 +29,8 @@ def command_list(*, tags: str | None) -> None:
         typer.echo(line)
 
 
-def command_recall(*, query: str, tags: str | None) -> None:
-    results = Brain().recall(query=query, tags=parse_csv(tags))
+def cmd_recall(*, query: str, tags: str | None) -> None:
+    results: list[str] = Brain().recall(query=query, tags=parse_csv(tags))
     if not results:
         typer.echo("No matches found.")
         return
@@ -38,7 +38,7 @@ def command_recall(*, query: str, tags: str | None) -> None:
         typer.echo(line)
 
 
-def command_forget(*, name: str) -> None:
+def cmd_forget(*, name: str) -> None:
     if Brain().forget(name):
         typer.echo(f"Removed {name}")
     else:

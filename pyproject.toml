@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-helix = "helix.cli.main:app"
+helix = "helix.cli.app:app"
 
 [dependency-groups]
 dev = [

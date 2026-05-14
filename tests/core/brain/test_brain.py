@@ -122,6 +122,25 @@ def test_convention_for_returns_none_when_missing(brain: Brain) -> None:
 
 
 @pytest.mark.usefixtures("_initialize_brain")
+def test_convention_for_returns_none_when_invalid(brain: Brain) -> None:
+    (brain.conventions / "broken.md").write_text("---\ntags: [python]\n---\nBody.\n")
+    assert brain.convention_for("broken") is None
+
+
+def test_list_conventions_returns_empty_when_not_initialized(brain: Brain) -> None:
+    assert not brain.is_initialized
+    assert brain.list_conventions() == []
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_recall_skips_invalid_convention_files(brain: Brain) -> None:
+    brain.remember(name="valid", body="Has thing.", tags=["python"])
+    (brain.conventions / "broken.md").write_text("---\ntags: [python]\n---\nthing.\n")
+    results = brain.recall("thing", tags=["python"])
+    assert any("valid" in r for r in results)
+
+
+@pytest.mark.usefixtures("_initialize_brain")
 def test_forget_removes_file(brain: Brain) -> None:
     brain.remember(name="to-delete", body="Delete me.", tags=["misc"])
     assert brain.forget("to-delete")
