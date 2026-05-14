@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v3.0.0 (2026-05-14)
+
+### Chores
+
+- Restructure CLI application and enhance convention management
+  ([`78320e1`](https://github.com/justmatias/helix/commit/78320e1dd4ecf95bdc5c37b057ad8ac135ce2a92))
+
+- Update CLI structure and enhance command definitions with type annotations
+  ([`a2717a6`](https://github.com/justmatias/helix/commit/a2717a651c915192a647e7f5ed0dc51d6e8d950e))
+
+### Features
+
+- Breaking change detected [skip ci]
+  ([`52eddd9`](https://github.com/justmatias/helix/commit/52eddd91dc8e68981ecf6b6ff957fbf0a3ed9a29))
+
+
 ## v2.0.0 (2026-05-14)
 
 ### Bug Fixes
