@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from helix.brain import Brain
-from helix.settings import Settings
+from helix.core.brain import Brain
+from helix.core.settings import Settings
 
 
 @pytest.fixture(autouse=True)

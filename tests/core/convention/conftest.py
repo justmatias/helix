@@ -1,6 +1,6 @@
 import pytest
 
-from helix.convention import Convention
+from helix.core.convention import Convention
 
 
 @pytest.fixture

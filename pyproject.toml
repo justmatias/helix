@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-helix = "helix.main:app"
+helix = "helix.cli.main:app"
 
 [dependency-groups]
 dev = [
@@ -120,7 +120,7 @@ disable_error_code = ["var-annotated"]
 ##################################
 
 [tool.poe.tasks]
-dev = "python helix/main.py"
+dev = "python helix/cli/main.py"
 format = "pre-commit run --all-files --verbose"
 test = "pytest --cov=tests --cov=helix --cov-report=term-missing:skip-covered"
 

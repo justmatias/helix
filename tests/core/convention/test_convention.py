@@ -1,6 +1,6 @@
 import pytest
 
-from helix.convention import Convention
+from helix.core.convention import Convention
 
 
 def test_convention_to_markdown_contains_frontmatter(sample_convention: Convention) -> None:

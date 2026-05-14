@@ -1,10 +1,11 @@
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Self
 
 import frontmatter
 
-from helix.settings import Settings
+from helix.core.settings import Settings
 
 CONVENTION_REGEX = r"\[([^\]]*)\] —"
 
@@ -30,7 +31,7 @@ class Convention:
         return str(frontmatter.dumps(post)) + "\n"
 
     @classmethod
-    def from_markdown(cls, text: str) -> "Convention":
+    def from_markdown(cls, text: str) -> Self:
         post = frontmatter.loads(text)
         name = post.get("name", "")
         if not name:
@@ -47,9 +48,7 @@ class Convention:
         if len(first_line) > 80:
             first_line = first_line[:77] + "..."
         tags_string = ",".join(self.tags)
-        return (
-            f"- [{self.name}](conventions/{self.name}.md) [{tags_string}] — {first_line}"
-        )
+        return f"- [{self.name}](conventions/{self.name}.md) [{tags_string}] — {first_line}"
 
     @staticmethod
     def tags_from_index_line(line: str) -> set[str]:
