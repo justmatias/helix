@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from helix.core.convention import Convention
 from helix.core.settings import Settings
+
+from .convention import Convention
 
 
 class Brain:

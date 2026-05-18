@@ -1,10 +1,11 @@
+import shutil
 from collections.abc import Callable
 from pathlib import Path
-from typing import Annotated, cast
+from typing import Annotated
 
 import typer
 
-from helix.core import Brain, Scope, detect_installed_blocks, install, uninstall
+from helix.core import Brain, Scope, detect_snippet_blocks, install, uninstall
 from helix.core.installer import clients as all_clients
 from helix.core.installer import detect_installed_clients
 from helix.utils import parse_csv
@@ -74,41 +75,74 @@ def _pick(prompt: str, options: list[str]) -> int:
     return choice - 1
 
 
+def _pick_many(prompt: str, options: list[str]) -> list[int]:
+    for index, label in enumerate(options, 1):
+        typer.echo(f"  {index}) {label}")
+    raw = typer.prompt(f"{prompt} (comma-separated, or 'all')", default="all")
+    if raw.strip().lower() == "all":
+        return list(range(len(options)))
+    chosen: list[int] = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part.isdigit() or not 1 <= int(part) <= len(options):
+            typer.echo(f"Invalid choice: {part!r}", err=True)
+            raise typer.Exit(1)
+        index = int(part) - 1
+        if index not in chosen:
+            chosen.append(index)
+    return chosen
+
+
 def cmd_install() -> None:
-    available = detect_installed_clients() or all_clients()
-    if not detect_installed_clients():
+    detected = detect_installed_clients()
+    available = detected or all_clients()
+    if not detected:
         typer.echo("No client config directories found; showing all known clients.")
 
-    typer.echo("Pick a client:")
-    client = available[_pick("Client", [c.name for c in available])]
+    typer.echo("Pick client(s):")
+    selected = [
+        available[i] for i in _pick_many("Clients", [c.name for c in available])
+    ]
 
     project_root = Path.cwd()
-    scope_labels = [
-        f"global ({client.global_path})",
-        f"project ({client.path_for('project', project_root)})",
-    ]
     typer.echo("Pick a scope:")
-    scope: Scope = cast(Scope, ("global", "project")[_pick("Scope", scope_labels)])
+    scope = (Scope.GLOBAL, Scope.PROJECT)[
+        _pick("Scope", ["global (per-user config dir)", "project (this repo)"])
+    ]
 
-    path = install(client, scope, project_root)
-    typer.echo(f"Wrote helix block to {path}")
+    written: set[Path] = set()
+    for client in selected:
+        path = client.path_for(scope, project_root)
+        if path in written:
+            typer.echo(f"Skipped {client.name}: {path} already written this run")
+            continue
+        install(client, scope, project_root)
+        written.add(path)
+        typer.echo(f"Wrote helix block to {path} ({client.name})")
+
+    if shutil.which("helix") is None:
+        typer.echo(
+            "\nWarning: 'helix' is not on PATH. The installed snippet tells agents "
+            "to run `helix list`, which will fail until the CLI is installed on "
+            "PATH (e.g. `pipx install helix` or `uv tool install helix`).",
+            err=True,
+        )
 
 
 def cmd_uninstall() -> None:
     project_root = Path.cwd()
-    installed = detect_installed_blocks(project_root)
+    installed = detect_snippet_blocks(project_root)
     if not installed:
         typer.echo("No helix blocks found.")
         return
 
     typer.echo("Pick a block to remove:")
     labels = [
-        f"{client.name} [{scope}] — {client.path_for(scope, project_root)}"
-        for client, scope in installed
+        f"{block.client.name} [{block.scope}] — {block.path}" for block in installed
     ]
-    client, scope = installed[_pick("Block", labels)]
-    if uninstall(client, scope, project_root):
-        typer.echo(f"Removed helix block from {client.path_for(scope, project_root)}")
+    block = installed[_pick("Block", labels)]
+    if uninstall(block.client, block.scope, project_root):
+        typer.echo(f"Removed helix block from {block.path}")
     else:
         typer.echo("Nothing to remove.", err=True)
         raise typer.Exit(1)

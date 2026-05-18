@@ -32,7 +32,22 @@ applies_to: [python]
 Prefer Pydantic v2 for any external-boundary validation.
 ```
 
-`INDEX.md` is a lightweight index — one line per convention, kept small so it's cheap to always load. Full bodies are pulled on demand.
+`INDEX.md` is a lightweight index — one line per convention, kept small so it's cheap to always load. Full bodies are pulled on demand:
+
+```mermaid
+flowchart TD
+    A[Session starts] --> B["Agent calls list_conventions(tags=[stack])"]
+    B --> C[~30 one-liners from INDEX.md enter context]
+    C --> D{Relevant entry<br/>for the task?}
+    D -- No --> E[Proceed normally]
+    D -- "Yes, one-liner is enough" --> F[Apply convention directly]
+    D -- "Yes, need full text" --> G["recall(name) pulls that single file body"]
+    G --> F
+    H["You: &quot;remember that...&quot;"] --> I["remember(name, body, tags)"]
+    I --> J[Write conventions/&lt;slug&gt;.md verbatim<br/>+ append one line to INDEX.md]
+```
+
+Only the filtered index is ever loaded in bulk; full convention files enter context one at a time, and only when the agent pulls them.
 
 ## Install
 

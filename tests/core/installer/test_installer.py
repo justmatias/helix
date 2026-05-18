@@ -2,13 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from helix.core.installer import (
+from helix.core import (
     END_MARKER,
     SNIPPET,
     START_MARKER,
     clients,
-    detect_installed_blocks,
     detect_installed_clients,
+    detect_snippet_blocks,
     install,
     uninstall,
 )
@@ -63,9 +63,7 @@ def test_uninstall_removes_block_keeping_other_content(
     assert "Keep me." in text
 
 
-def test_uninstall_deletes_file_when_only_block(
-    tmp_path: Path, claude_client
-) -> None:
+def test_uninstall_deletes_file_when_only_block(tmp_path: Path, claude_client) -> None:
     install(claude_client, "project", tmp_path)
     assert uninstall(claude_client, "project", tmp_path) is True
     assert not (tmp_path / "CLAUDE.md").exists()
@@ -82,11 +80,23 @@ def test_detect_installed_clients_finds_claude(tmp_path: Path) -> None:
     assert "cursor" not in detected
 
 
-def test_detect_installed_blocks_lists_written_locations(
+def test_clients_include_codex_and_opencode() -> None:
+    keys = {c.key for c in clients()}
+    assert {"claude", "cursor", "codex", "opencode"} <= keys
+
+
+def test_codex_uses_agents_md(tmp_path: Path) -> None:
+    codex = next(c for c in clients() if c.key == "codex")
+    assert codex.path_for("project", tmp_path) == tmp_path / "AGENTS.md"
+    install(codex, "project", tmp_path)
+    assert START_MARKER in (tmp_path / "AGENTS.md").read_text()
+
+
+def test_detect_snippet_blocks_lists_written_locations(
     tmp_path: Path, claude_client
 ) -> None:
     install(claude_client, "project", tmp_path)
     install(claude_client, "global", tmp_path)
-    blocks = detect_installed_blocks(tmp_path)
-    scopes = {scope for _, scope in blocks}
+    blocks = detect_snippet_blocks(tmp_path)
+    scopes = {block.scope for block in blocks}
     assert scopes == {"project", "global"}
