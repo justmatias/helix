@@ -18,6 +18,21 @@ class Client(BaseModel):
     project_relative_path: Path = Field(
         description="Config file path relative to a project root, for project scope."
     )
+    preamble: str | None = Field(
+        default=None,
+        description="Content prepended when creating a new config file (e.g. frontmatter).",
+    )
+    detect_path: Path | None = Field(
+        default=None,
+        description=(
+            "Directory checked to detect whether the client is installed. "
+            "Defaults to global_path.parent when None."
+        ),
+    )
+
+    @property
+    def installation_directory(self) -> Path:
+        return self.detect_path if self.detect_path is not None else self.global_path.parent
 
     def path_for(self, scope: Scope, project_root: Path) -> Path:
         if scope == Scope.GLOBAL:

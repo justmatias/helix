@@ -96,9 +96,37 @@ def test_detect_installed_clients_finds_claude() -> None:
     assert "cursor" not in detected
 
 
+@pytest.mark.usefixtures("_create_cursor_global_directory")
+def test_detect_installed_clients_finds_cursor_via_dot_cursor_dir() -> None:
+    detected = {client.key for client in detect_installed_clients()}
+    assert "cursor" in detected
+
+
 def test_clients_include_codex_and_opencode() -> None:
     keys = {client.key for client in clients()}
     assert {"claude", "cursor", "codex", "opencode"} == keys
+
+
+def test_cursor_install_includes_frontmatter(tmp_path: Path, cursor_client: Client) -> None:
+    path = install(cursor_client, Scope.PROJECT, tmp_path)
+    text = path.read_text()
+    assert text.startswith("---\nalwaysApply: true\n---")
+    assert START_MARKER in text
+
+
+def test_cursor_install_preserves_existing_frontmatter(
+    tmp_path: Path, cursor_client: Client
+) -> None:
+    mdc_path = cursor_client.path_for(Scope.PROJECT, tmp_path)
+    mdc_path.parent.mkdir(parents=True, exist_ok=True)
+    existing = "---\nalwaysApply: true\n---\n\nSome existing content.\n"
+    mdc_path.write_text(existing)
+
+    install(cursor_client, Scope.PROJECT, tmp_path)
+    text = mdc_path.read_text()
+    assert text.count("---\nalwaysApply: true\n---") == 1
+    assert "Some existing content." in text
+    assert START_MARKER in text
 
 
 def test_detect_snippet_blocks_lists_written_locations(
