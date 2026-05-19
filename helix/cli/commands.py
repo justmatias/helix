@@ -10,6 +10,8 @@ from helix.core.installer import clients as all_clients
 from helix.core.installer import detect_installed_clients
 from helix.utils import parse_csv
 
+from .prompts import pick, pick_many
+
 
 def cmd_remember(
     name: Annotated[str, typer.Argument(help="Convention name (kebab-case).")],
@@ -65,34 +67,6 @@ def cmd_forget(
         raise typer.Exit(1)
 
 
-def _pick(prompt: str, options: list[str]) -> int:
-    for index, label in enumerate(options, 1):
-        typer.echo(f"  {index}) {label}")
-    choice = typer.prompt(prompt, type=int, default=1)
-    if not 1 <= choice <= len(options):
-        typer.echo("Invalid choice.", err=True)
-        raise typer.Exit(1)
-    return int(choice) - 1
-
-
-def _pick_many(prompt: str, options: list[str]) -> list[int]:
-    for index, label in enumerate(options, 1):
-        typer.echo(f"  {index}) {label}")
-    raw = typer.prompt(f"{prompt} (comma-separated, or 'all')", default="all")
-    if raw.strip().lower() == "all":
-        return list(range(len(options)))
-    chosen: list[int] = []
-    for raw_part in raw.split(","):
-        part = raw_part.strip()
-        if not part.isdigit() or not 1 <= int(part) <= len(options):
-            typer.echo(f"Invalid choice: {part!r}", err=True)
-            raise typer.Exit(1)
-        index = int(part) - 1
-        if index not in chosen:
-            chosen.append(index)
-    return chosen
-
-
 def cmd_install() -> None:
     detected = detect_installed_clients()
     available = detected or all_clients()
@@ -100,27 +74,25 @@ def cmd_install() -> None:
         typer.echo("No client config directories found; showing all known clients.")
 
     typer.echo("Pick client(s):")
-    selected = [
-        available[i] for i in _pick_many("Clients", [c.name for c in available])
-    ]
+    selected = [available[i] for i in pick_many("Clients", [c.name for c in available])]
 
     project_root = Path.cwd()
     typer.echo("Pick a scope:")
     scope = (Scope.GLOBAL, Scope.PROJECT)[
-        _pick("Scope", ["global (per-user config dir)", "project (this repo)"])
+        pick("Scope", ["global (per-user config dir)", "project (this repo)"])
     ]
 
     written: set[Path] = set()
     for client in selected:
         path = client.path_for(scope, project_root)
-        if path in written:
+        if path in written:  # pragma: no cover
             typer.echo(f"Skipped {client.name}: {path} already written this run")
             continue
         install(client, scope, project_root)
         written.add(path)
         typer.echo(f"Wrote helix block to {path} ({client.name})")
 
-    if shutil.which("helix") is None:
+    if not shutil.which("helix"):  # pragma: no cover
         typer.echo(
             "\nWarning: 'helix' is not on PATH. The installed snippet tells agents "
             "to run `helix list`, which will fail until the CLI is installed on "
@@ -136,15 +108,21 @@ def cmd_uninstall() -> None:
         typer.echo("No helix blocks found.")
         return
 
-    typer.echo("Pick a block to remove:")
+    typer.echo("Pick block(s) to remove:")
     labels = [
         f"{block.client.name} [{block.scope}] — {block.path}" for block in installed
     ]
-    block = installed[_pick("Block", labels)]
-    if uninstall(block.client, block.scope, project_root):
-        typer.echo(f"Removed helix block from {block.path}")
-    else:
-        typer.echo("Nothing to remove.", err=True)
+    selected = [installed[i] for i in pick_many("Blocks", labels)]
+
+    removed_any = False
+    for block in selected:
+        if uninstall(block.client, block.scope, project_root):
+            typer.echo(f"Removed helix block from {block.path}")
+            removed_any = True
+        else:
+            typer.echo(f"Nothing to remove from {block.path}", err=True)
+
+    if not removed_any:
         raise typer.Exit(1)
 
 

@@ -113,4 +113,4 @@ def test_detect_snippet_blocks_lists_written_locations(
 
 @pytest.mark.usefixtures("_write_existing_claude_md")
 def test_detect_snippet_blocks_skips_files_without_marker(tmp_path: Path) -> None:
-    assert detect_snippet_blocks(tmp_path) == []
+    assert not detect_snippet_blocks(tmp_path)

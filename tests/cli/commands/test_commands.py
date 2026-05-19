@@ -1,6 +1,5 @@
-from collections.abc import Iterator
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 import pytest
 import typer
@@ -13,14 +12,7 @@ from helix.cli import (
     cmd_remember,
     cmd_uninstall,
 )
-from helix.core import START_MARKER, Brain, clients, install
-from helix.core.installer.models import Scope
-
-
-def _answers(monkeypatch: pytest.MonkeyPatch, *values: Any) -> None:
-    """Feed ``typer.prompt`` a fixed sequence of answers."""
-    it: Iterator[Any] = iter(values)
-    monkeypatch.setattr(typer, "prompt", lambda *a, **k: next(it))
+from helix.core import START_MARKER, Brain
 
 
 def test_cmd_remember_creates_file_and_echoes(
@@ -89,53 +81,60 @@ def test_cmd_forget_missing_exits(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_cmd_install_writes_block_for_selected_client(
     capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    set_answers: Callable[..., None],
+    working_dir: Path,
 ) -> None:
-    monkeypatch.chdir(tmp_path)
     # Pick the first client (Claude Code), then scope 2 (project).
-    _answers(monkeypatch, "1", 2)
+    set_answers("1", 2)
     cmd_install()
     captured = capsys.readouterr()
-    target = tmp_path / "CLAUDE.md"
+    target = working_dir / "CLAUDE.md"
     assert "Wrote helix block to" in captured.out
     assert target.exists()
     assert START_MARKER in target.read_text()
 
 
 def test_cmd_install_no_detected_clients_lists_all(
-    capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str], set_answers: Callable[..., None]
 ) -> None:
-    monkeypatch.chdir(tmp_path)
-    _answers(monkeypatch, "1", 2)
+    set_answers("1", 2)
     cmd_install()
     captured = capsys.readouterr()
     assert "No client config directories found" in captured.out
 
 
+@pytest.mark.usefixtures("_install_claude_client")
 def test_cmd_uninstall_removes_existing_block(
     capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    set_answers: Callable[..., None],
+    working_dir: Path,
 ) -> None:
-    claude = next(c for c in clients() if c.key == "claude")
-    install(claude, Scope.PROJECT, tmp_path)
-    monkeypatch.chdir(tmp_path)
-    _answers(monkeypatch, 1)
+    set_answers("1")
     cmd_uninstall()
     captured = capsys.readouterr()
     assert "Removed helix block from" in captured.out
-    assert not (tmp_path / "CLAUDE.md").exists()
+    assert not (working_dir / "CLAUDE.md").exists()
 
 
+@pytest.mark.usefixtures("working_dir")
 def test_cmd_uninstall_no_blocks_found(
     capsys: pytest.CaptureFixture[str],
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
 ) -> None:
-    monkeypatch.chdir(tmp_path)
     cmd_uninstall()
     captured = capsys.readouterr()
     assert "No helix blocks found." in captured.out
+
+
+@pytest.mark.usefixtures("_install_claude_client")
+def test_cmd_uninstall_reports_when_nothing_removed(
+    capsys: pytest.CaptureFixture[str],
+    set_answers: Callable[..., None],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    set_answers("1")
+    monkeypatch.setattr("helix.cli.commands.uninstall", lambda *a, **k: False)
+    with pytest.raises(typer.Exit) as exc_info:
+        cmd_uninstall()
+    assert exc_info.value.exit_code == 1
+    captured = capsys.readouterr()
+    assert "Nothing to remove from" in captured.err
