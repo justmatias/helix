@@ -1,6 +1,29 @@
 # CHANGELOG
 
 
+## v4.0.1 (2026-05-19)
+
+### Bug Fixes
+
+- **docs**: Update quickstart docs
+  ([`f16da2b`](https://github.com/justmatias/helix/commit/f16da2b8a34d732e6da7c5d13a4f6dce44bec57b))
+
+### Chores
+
+- Update project name to 'helix-memory', version to 4.0.0, and a…
+  ([#3](https://github.com/justmatias/helix/pull/3),
+  [`a680c86`](https://github.com/justmatias/helix/commit/a680c86e5e83c695979f1d775cde18ebed73fa74))
+
+* chore: update project name to 'helix-memory', version to 4.0.0, and adjust Python requirement to
+  >=3.13; enhance installation instructions in README and CI workflow for PyPI publishing
+
+* fix: add Snyk security scanning workflow for automated dependency checks
+
+* chore: update Python requirement to >=3.13 and rename package to 'helix-memory' with version 4.0.0
+
+* chore: update package version to reflect renaming to 'helix-memory'
+
+
 ## v4.0.0 (2026-05-19)
 
 ### Features
