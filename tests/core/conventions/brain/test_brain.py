@@ -1,6 +1,6 @@
 import pytest
 
-from helix.core.brain import Brain
+from helix.core import Brain
 
 
 def test_initialize_creates_conventions_dir(brain: Brain) -> None:

@@ -189,11 +189,17 @@ Track build progress here. Items mirror the Build Order phases.
      ### Step 1 — Folder + CLI (MVP)
      - [x] Init Python project (`pyproject.toml`, add `typer` dep)
      - [x] Create `~/.dev_brain/` skeleton on first run: `conventions/`, empty `INDEX.md`
-     - [ ] Define frontmatter schema (`name`, `tags`, `applies_to`) + a tiny parser
-     - [ ] `helix remember --name <slug> --tags a,b "<body>"` → write `conventions/<slug>.md` verbatim, append one line to `INDEX.md`
-     - [ ] `helix list [--tags python]` → print filtered `INDEX.md`
-     - [ ] `helix recall "<query>" [--tags ...]` → shell out to `ripgrep`, return matched snippets with file paths
-     - [ ] `helix forget <slug>` → remove file + its `INDEX.md` line
+     - [x] Define frontmatter schema (`name`, `tags`, `applies_to`) + a tiny parser
+     - [x] `helix remember <slug> "<body>" --tags a,b` → write `conventions/<slug>.md` verbatim, append one line to `INDEX.md`
+     - [x] `helix list [--tags python]` → print filtered `INDEX.md`
+     - [x] `helix recall "<query>" [--tags ...]` → search conventions, return matched snippets with file paths
+     - [x] `helix forget <slug>` → remove file + its `INDEX.md` line
+     - [x] `helix install` / `helix uninstall` → interactive menu (no client/scope flags) that:
+       - auto-detects installed clients (Claude Code, Cursor, Codex CLI, opencode)
+       - prompts for one-or-more clients (multi-select) + scope (global vs project)
+       - writes an idempotent snippet wrapped in `<!-- helix:start -->` / `<!-- helix:end -->` markers so re-runs update in place
+       - warns if `helix` is not on PATH (the snippet's `helix list` call would otherwise fail); detection only, no PATH/shell mutation
+       - Step 1 snippet: *"run `helix list` at session start"*; Step 2 will swap in the MCP `list_conventions` instruction
      - [ ] Dogfood for ~1 week before moving to Step 2
 
      ### Step 2 — MCP Server
@@ -202,6 +208,10 @@ Track build progress here. Items mirror the Build Order phases.
      - [ ] `helix serve` command to launch the MCP server
      - [ ] Write a `CLAUDE.md` snippet: instruct agent to call `list_conventions(tags=[<stack>])` on first turn
      - [ ] Document Claude Code + Cursor MCP config to point at `helix serve`
+     - [ ] Extend `helix install` to also write each selected client's MCP server
+       config (pointing at `helix serve`) alongside the instruction snippet —
+       same multi-select/scope flow, idempotent, per-client config format
+       (e.g. `.mcp.json`, Cursor `mcp.json`, `~/.codex/config.toml`)
      - [ ] Decide confirmation policy default (write-immediately) and config flag for clients that auto-approve
 
      ### Step 3 — Project Overrides

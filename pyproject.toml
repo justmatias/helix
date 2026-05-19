@@ -81,7 +81,8 @@ disable = [
   "redefined-outer-name",
   "broad-exception-caught",
   "import-error",
-  "invalid-name"
+  "invalid-name",
+  "no-member"
 ]
 extension-pkg-allow-list = ["dependency_injector"]
 generated-members = ["dependency_injector.*"]
