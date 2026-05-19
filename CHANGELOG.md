@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v4.0.2 (2026-05-19)
+
+### Bug Fixes
+
+- Integrate questionary for interactive CLI prompts and update dep…
+  ([#4](https://github.com/justmatias/helix/pull/4),
+  [`8b6f7bb`](https://github.com/justmatias/helix/commit/8b6f7bb07ec047701dfaeb8207417137ea0aee73))
+
+* fix: integrate questionary for interactive CLI prompts and update dependencies
+
+* chore: fix mypy issues
+
+
 ## v4.0.1 (2026-05-19)
 
 ### Bug Fixes
