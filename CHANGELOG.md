@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v4.0.3 (2026-05-19)
+
+### Bug Fixes
+
+- Add preamble and detect_path attributes to Client model; update installation logic and tests for
+  cursor client ([#5](https://github.com/justmatias/helix/pull/5),
+  [`0a003a1`](https://github.com/justmatias/helix/commit/0a003a1579a3aac5a36059f9e29497b4918540fa))
+
+
 ## v4.0.2 (2026-05-19)
 
 ### Bug Fixes
