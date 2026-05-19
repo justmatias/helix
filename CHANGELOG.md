@@ -1,6 +1,35 @@
 # CHANGELOG
 
 
+## v4.0.0 (2026-05-19)
+
+### Features
+
+- Breaking change detected [skip ci]
+  ([`ef40cce`](https://github.com/justmatias/helix/commit/ef40ccedbcb594d8bfa75fdc2b984e141cf84b1e))
+
+- Enhance Helix CLI with installation and uninstallation commands…
+  ([#2](https://github.com/justmatias/helix/pull/2),
+  [`172ebf0`](https://github.com/justmatias/helix/commit/172ebf0ae3eb96e845cd005051fda93bed249e02))
+
+* feat: enhance Helix CLI with installation and uninstallation commands for agent integration
+
+* chore(config): update pre-commit hooks
+
+* fix: refactor installer operations and reorganize modules
+
+* chore: fix lint issues and refactor installer tests
+
+* fix: extract prompt selection logic into separate functions for improved readability and
+  reusability
+
+* chore: remove comment
+
+---------
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+
 ## v3.0.0 (2026-05-14)
 
 ### Chores
