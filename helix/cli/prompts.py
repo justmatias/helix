@@ -51,7 +51,7 @@ def _pick_fallback(prompt: str, options: list[str]) -> int:  # pragma: no cover
         f"Enter a number (1-{len(options)}) or the exact option name",
         default="1",
     )
-    index = _resolve(str(raw), options)
+    index = _resolve(str(raw), options)  # type: ignore[assignment]
     if index is None:
         typer.echo(f"Invalid choice: {raw!r}", err=True)
         raise typer.Exit(1)
@@ -73,7 +73,7 @@ def _pick_many_fallback(
         return list(range(len(options)))
     chosen: list[int] = []
     for part in raw.split(","):
-        index = _resolve(part, options)
+        index = _resolve(part, options)  # type: ignore[assignment]
         if index is None:
             typer.echo(f"Invalid choice: {part.strip()!r}", err=True)
             raise typer.Exit(1)
