@@ -20,6 +20,8 @@ def clients() -> list[Client]:
             name="Cursor",
             global_path=home / ".cursor" / "rules" / "helix.mdc",
             project_relative_path=Path(".cursor") / "rules" / "helix.mdc",
+            preamble="---\nalwaysApply: true\n---",
+            detect_path=home / ".cursor",
         ),
         Client(
             key="codex",
@@ -37,7 +39,7 @@ def clients() -> list[Client]:
 
 
 def detect_installed_clients() -> list[Client]:
-    return [client for client in clients() if client.global_path.parent.exists()]
+    return [client for client in clients() if client.installation_directory.exists()]
 
 
 def detect_snippet_blocks(project_root: Path) -> list[SnippetBlock]:
@@ -83,7 +85,7 @@ def install(client: Client, scope: Scope, project_root: Path) -> Path:
     path = client.path_for(scope, project_root)
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    existing = path.read_text() if path.exists() else ""
+    existing = path.read_text() if path.exists() else (client.preamble or "")
     block = f"{START_MARKER}\n{SNIPPET}{END_MARKER}\n"
     new_text = _insert_snippet_block(existing, block)
     path.write_text(new_text)

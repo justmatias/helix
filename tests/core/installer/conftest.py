@@ -12,6 +12,11 @@ def claude_client() -> Client:
 
 
 @pytest.fixture
+def cursor_client() -> Client:
+    return next(client for client in clients() if client.key == "cursor")
+
+
+@pytest.fixture
 def claude_md(tmp_path: Path) -> Path:
     return tmp_path / "CLAUDE.md"
 
@@ -34,3 +39,8 @@ def _write_existing_claude_md(claude_md: Path, existing_content: str) -> None:
 @pytest.fixture
 def _create_claude_global_directory(tmp_path: Path) -> None:
     (tmp_path / ".claude").mkdir()
+
+
+@pytest.fixture
+def _create_cursor_global_directory(tmp_path: Path) -> None:
+    (tmp_path / ".cursor").mkdir()
