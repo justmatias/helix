@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12', '3.13', '3.14']
+        python-version: ['3.13', '3.14']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -152,3 +152,32 @@ jobs:
 
     outputs:
       released: ${{ steps.release.outputs.released }}
+      version: ${{ steps.release.outputs.version }}
+
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && needs.versioning.outputs.released == 'true'
+    needs: [versioning]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/helix-memory
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-python-env
+        with:
+          python-version: '3.13'
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
