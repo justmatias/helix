@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 from .conventions import Brain, Convention
 from .installer import (
     BLOCK_PATTERN,
@@ -23,12 +24,12 @@ __all__ = [
     "Brain",
     "Client",
     "Convention",
-    "SnippetBlock",
     "Scope",
     "Settings",
+    "SnippetBlock",
     "clients",
-    "detect_snippet_blocks",
     "detect_installed_clients",
+    "detect_snippet_blocks",
     "install",
     "uninstall",
 ]

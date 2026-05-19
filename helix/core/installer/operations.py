@@ -48,7 +48,7 @@ def detect_snippet_blocks(project_root: Path) -> list[SnippetBlock]:
             if not path.exists():
                 continue
 
-            if not START_MARKER in path.read_text():
+            if START_MARKER not in path.read_text():
                 continue
 
             config_block = SnippetBlock(client=client, scope=scope, path=path)

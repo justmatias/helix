@@ -72,7 +72,7 @@ def _pick(prompt: str, options: list[str]) -> int:
     if not 1 <= choice <= len(options):
         typer.echo("Invalid choice.", err=True)
         raise typer.Exit(1)
-    return choice - 1
+    return int(choice) - 1
 
 
 def _pick_many(prompt: str, options: list[str]) -> list[int]:
@@ -82,8 +82,8 @@ def _pick_many(prompt: str, options: list[str]) -> list[int]:
     if raw.strip().lower() == "all":
         return list(range(len(options)))
     chosen: list[int] = []
-    for part in raw.split(","):
-        part = part.strip()
+    for raw_part in raw.split(","):
+        part = raw_part.strip()
         if not part.isdigit() or not 1 <= int(part) <= len(options):
             typer.echo(f"Invalid choice: {part!r}", err=True)
             raise typer.Exit(1)

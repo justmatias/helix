@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code  # re-export list mirrors helix.core
 from helix.core.installer.models import Client, Scope, SnippetBlock
 from helix.core.installer.operations import (
     clients,
