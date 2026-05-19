@@ -1,9 +1,9 @@
 [project]
-name = "helix"
-version = "0.0.0"
+name = "helix-memory"
+version = "4.0.0"
 description = "A lightweight, multi-client memory layer that persists cross-project coding conventions"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 authors = [
   { name = "Matias Gimenez", email = "matiasgimenez.dev@gmail.com" },
 ]
@@ -134,6 +134,7 @@ test = "pytest --cov=tests --cov=helix --cov-report=term-missing:skip-covered"
 branch = "main"
 commit_message = "chore(release): release version {version} [skip ci]"
 version_variables = ["helix/__init__.py:__version__"]
+version_toml = ["pyproject.toml:project.version"]
 
 [tool.semantic_release.branches.main]
 match = "(main|master)"

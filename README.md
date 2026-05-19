@@ -52,7 +52,16 @@ Only the filtered index is ever loaded in bulk; full convention files enter cont
 ## Install
 
 ```bash
-pip install helix  # coming soon — for now, clone and use uv
+# With uv (recommended)
+uv tool install helix-memory
+
+# Or with pip
+pip install helix-memory
+```
+
+### From source
+
+```bash
 git clone https://github.com/matiasgimenez/helix
 cd helix
 uv sync
