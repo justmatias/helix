@@ -9,6 +9,6 @@ def test_forget_removes_convention(brain: Brain) -> None:
     assert "to-delete" not in brain.list_conventions()
 
 
-def test_forget_missing_convention(brain: Brain) -> None:
+def test_forget_missing_convention() -> None:
     result = forget(name="nonexistent")
     assert result == "I could not find the convention to forget."

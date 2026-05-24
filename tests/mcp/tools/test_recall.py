@@ -2,7 +2,7 @@ from helix.core import Brain
 from helix.mcp.tools.recall import recall
 
 
-def test_recall_no_match(brain: Brain) -> None:
+def test_recall_no_match() -> None:
     assert recall(query="nothing here") == []
 
 

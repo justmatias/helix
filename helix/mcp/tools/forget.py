@@ -2,7 +2,7 @@ from helix.core import Brain
 from helix.utils import logger
 
 
-def forget(name: str, tags: list[str] | None = None) -> str:
+def forget(name: str) -> str:
     logger.info(f"forget | name={name}")
     has_forgotten = Brain().forget(name)
     if has_forgotten:

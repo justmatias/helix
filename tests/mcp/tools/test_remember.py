@@ -2,7 +2,7 @@ from helix.core import Brain
 from helix.mcp.tools.remember import remember
 
 
-def test_remember_returns_path_string(brain: Brain) -> None:
+def test_remember_returns_path_string() -> None:
     result = remember(name="my-conv", body="Always use async.", tags=["python"])
     assert result.endswith("my-conv.md")
 
