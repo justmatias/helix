@@ -17,11 +17,6 @@ def cursor_client() -> Client:
 
 
 @pytest.fixture
-def codex_client() -> Client:
-    return next(client for client in clients() if client.key == "codex")
-
-
-@pytest.fixture
 def json_mcp_client(tmp_path: Path) -> Client:
     return Client(
         key="test-json",

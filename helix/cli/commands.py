@@ -106,7 +106,7 @@ def cmd_install() -> None:
         )
 
 
-def cmd_serve() -> None:
+def cmd_serve() -> None:  # pragma: no cover
     run_mcp_server()
 
 
