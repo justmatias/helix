@@ -129,7 +129,7 @@ disable_error_code = ["var-annotated"]
 cli = "python helix/cli/app.py"
 format = "pre-commit run --all-files --verbose"
 test = "pytest --cov=tests --cov=helix --cov-report=term-missing:skip-covered"
-mcp = "python helix/mcp/app.py"
+mcp = "python helix/mcp/main.py"
 
 
 ##################################

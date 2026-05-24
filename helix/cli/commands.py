@@ -8,6 +8,7 @@ import typer
 from helix.core import Brain, Scope, detect_snippet_blocks, install, uninstall
 from helix.core.installer import clients as all_clients
 from helix.core.installer import detect_installed_clients
+from helix.mcp.app import run_mcp_server
 from helix.utils import parse_csv
 
 from .prompts import pick, pick_many
@@ -101,6 +102,10 @@ def cmd_install() -> None:
         )
 
 
+def cmd_serve() -> None:
+    run_mcp_server()
+
+
 def cmd_uninstall() -> None:
     project_root = Path.cwd()
     installed = detect_snippet_blocks(project_root)
@@ -132,5 +137,6 @@ COMMANDS: dict[str, Callable[..., None]] = {
     "list": cmd_list,
     "recall": cmd_recall,
     "remember": cmd_remember,
+    "serve": cmd_serve,
     "uninstall": cmd_uninstall,
 }

@@ -1,9 +1,7 @@
 from helix.core import Brain
-from helix.mcp.app import mcp
 from helix.utils import logger, parse_csv
 
 
-@mcp.tool
 def list_conventions(tags: list[str] | None = None) -> list[str]:
     logger.info(f"list_conventions | tags={tags}")
     results = Brain().list_conventions(tags=parse_csv(tags))

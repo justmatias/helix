@@ -1,9 +1,7 @@
 from helix.core import Brain
-from helix.mcp.app import mcp
 from helix.utils import logger, parse_csv
 
 
-@mcp.tool
 def remember(
     name: str,
     body: str,

@@ -1,9 +1,7 @@
 from helix.core import Brain
-from helix.mcp.app import mcp
 from helix.utils import logger
 
 
-@mcp.tool
 def forget(name: str, tags: list[str] | None = None) -> str:
     logger.info(f"forget | name={name}")
     has_forgotten = Brain().forget(name)
