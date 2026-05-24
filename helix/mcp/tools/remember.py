@@ -1,5 +1,5 @@
 from helix.core import Brain
-from helix.utils import logger, parse_csv
+from helix.utils import logger
 
 
 def remember(
@@ -12,8 +12,8 @@ def remember(
     path = Brain().remember(
         name=name,
         body=body,
-        tags=parse_csv(tags),
-        applies_to=parse_csv(applies_to),
+        tags=tags or [],
+        applies_to=applies_to,
     )
     logger.info(f"remember | saved to {path}")
     return str(path)
