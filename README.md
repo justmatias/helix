@@ -40,20 +40,74 @@ helix serve     # start the MCP server
 
 ## MCP server
 
-`helix serve` exposes four tools to any MCP-compatible client: `remember`, `recall`, `list_conventions`, `forget`.
+`helix serve` starts a stdio MCP server that exposes four tools: `remember`, `recall`, `list_conventions`, `forget`.
 
-Add to your client's MCP config (e.g. `~/.claude/claude_desktop_config.json`):
+### Claude Code
+
+**Project-scoped** (recommended — one `.mcp.json` per repo):
+
+```json
+// .mcp.json at the project root
+{
+  "mcpServers": {
+    "helix": {
+      "command": "helix",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+**User-scoped** (available in every project):
+
+```bash
+claude mcp add helix -- helix serve
+```
+
+Or edit `~/.claude.json` manually:
 
 ```json
 {
-	"mcpServers": {
-		"helix": {
-			"command": "helix",
-			"args": ["serve"]
-		}
-	}
+  "mcpServers": {
+    "helix": {
+      "command": "helix",
+      "args": ["serve"]
+    }
+  }
 }
 ```
+
+### Cursor
+
+**Global** (all projects):
+
+```json
+// ~/.cursor/mcp.json
+{
+  "mcpServers": {
+    "helix": {
+      "command": "helix",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+**Project-scoped**:
+
+```json
+// .cursor/mcp.json at the project root
+{
+  "mcpServers": {
+    "helix": {
+      "command": "helix",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+After adding the config, restart your client. Verify the server is visible: in Claude Code run `/mcp`, in Cursor open the MCP panel.
 
 ## License
 
