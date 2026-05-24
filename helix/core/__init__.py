@@ -6,13 +6,16 @@ from .installer import (
     SNIPPET,
     START_MARKER,
     Client,
+    McpConfigFormat,
     Scope,
     SnippetBlock,
     clients,
     detect_installed_clients,
     detect_snippet_blocks,
     install,
+    install_mcp_config,
     uninstall,
+    uninstall_mcp_config,
 )
 from .settings import Settings
 
@@ -24,6 +27,7 @@ __all__ = [
     "Brain",
     "Client",
     "Convention",
+    "McpConfigFormat",
     "Scope",
     "Settings",
     "SnippetBlock",
@@ -31,5 +35,7 @@ __all__ = [
     "detect_installed_clients",
     "detect_snippet_blocks",
     "install",
+    "install_mcp_config",
     "uninstall",
+    "uninstall_mcp_config",
 ]

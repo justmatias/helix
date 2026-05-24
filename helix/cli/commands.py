@@ -7,7 +7,7 @@ import typer
 
 from helix.core import Brain, Scope, detect_snippet_blocks, install, uninstall
 from helix.core.installer import clients as all_clients
-from helix.core.installer import detect_installed_clients
+from helix.core.installer import detect_installed_clients, install_mcp_config
 from helix.mcp.app import run_mcp_server
 from helix.utils import parse_csv
 
@@ -92,6 +92,10 @@ def cmd_install() -> None:
         install(client, scope, project_root)
         written.add(path)
         typer.echo(f"Wrote helix block to {path} ({client.name})")
+
+        mcp_path = install_mcp_config(client, scope, project_root)
+        if mcp_path is not None:
+            typer.echo(f"Wrote MCP server config to {mcp_path} ({client.name})")
 
     if not shutil.which("helix"):  # pragma: no cover
         typer.echo(

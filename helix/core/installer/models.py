@@ -9,6 +9,11 @@ class Scope(StrEnum):
     PROJECT = "project"
 
 
+class McpConfigFormat(StrEnum):
+    JSON = "json"
+    TOML = "toml"
+
+
 class Client(BaseModel):
     key: str = Field(description="Stable identifier for the client (e.g. 'claude').")
     name: str = Field(description="Human-readable client name shown in CLI prompts.")
@@ -29,6 +34,18 @@ class Client(BaseModel):
             "Defaults to global_path.parent when None."
         ),
     )
+    mcp_global_path: Path | None = Field(
+        default=None,
+        description="Absolute path to the client's global MCP server config file.",
+    )
+    mcp_project_relative_path: Path | None = Field(
+        default=None,
+        description="MCP config file path relative to project root, for project scope.",
+    )
+    mcp_format: McpConfigFormat = Field(
+        default=McpConfigFormat.JSON,
+        description="File format used by this client's MCP config.",
+    )
 
     @property
     def installation_directory(self) -> Path:
@@ -38,6 +55,13 @@ class Client(BaseModel):
         if scope == Scope.GLOBAL:
             return self.global_path
         return project_root / self.project_relative_path
+
+    def mcp_path_for(self, scope: Scope, project_root: Path) -> Path | None:
+        if scope == Scope.GLOBAL:
+            return self.mcp_global_path
+        if self.mcp_project_relative_path is None:
+            return None
+        return project_root / self.mcp_project_relative_path
 
 
 class SnippetBlock(BaseModel):
