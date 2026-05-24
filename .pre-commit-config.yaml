@@ -17,7 +17,7 @@ repos:
       - id: gitleaks
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.15.13'
+    rev: 'v0.15.14'
     hooks:
       - id: ruff-check
         name: ruff
@@ -30,7 +30,7 @@ repos:
         args: ['-r', '-lll']
 
   - repo: https://github.com/justmatias/pre-commit-uv-sync
-    rev: v1.0.0
+    rev: v1.0.1
     hooks:
       - id: sync-uv-additional-deps
 
