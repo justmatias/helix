@@ -1,6 +1,47 @@
 # CHANGELOG
 
 
+## v4.1.0 (2026-05-24)
+
+### Features
+
+- Implement MCP tools for managing memory with list, remember, fo…
+  ([#6](https://github.com/justmatias/helix/pull/6),
+  [`4975db2`](https://github.com/justmatias/helix/commit/4975db2236b9f32ebfe628425028983f11f93292))
+
+* feat: implement MCP tools for managing memory with list, remember, forget, and recall capabilities
+
+* chore(config): update pre-commit hooks
+
+* fix: refactor MCP tools for modular registration and add `helix serve` command
+
+* docs: update MCP development plan and expand installation documentation for Claude Code and Cursor
+
+* test: add tests for MCP tools.
+
+* test: fix recall tool tests
+
+* test: fix tests
+
+* fix: implement idempotent mcp server configuration installation and uninstallation for client
+  environments
+
+* chore(docs): update implementation plan
+
+* feat: implement HELIX_REQUIRE_CONFIRM setting to require explicit confirmation for remember and
+  forget operations
+
+* test: add coverage exclusions to MCP server and clean up unused pytest configurations and fixtures
+
+* chore: add pragma no cover
+
+* test: add edge case coverage for uninstall_mcp_config with empty or missing server definitions
+
+---------
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+
 ## v4.0.3 (2026-05-19)
 
 ### Bug Fixes
