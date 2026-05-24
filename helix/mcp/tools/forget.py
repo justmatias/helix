@@ -1,0 +1,14 @@
+from helix.core import Brain
+from helix.mcp.app import mcp
+from helix.utils import logger
+
+
+@mcp.tool
+def forget(name: str, tags: list[str] | None = None) -> str:
+    logger.info(f"forget | name={name}")
+    has_forgotten = Brain().forget(name)
+    if has_forgotten:
+        logger.info(f"forget | successfully removed {name!r}")
+        return "Successfully forgotten the convention."
+    logger.warning(f"forget | convention not found: {name!r}")
+    return "I could not find the convention to forget."
