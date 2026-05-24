@@ -222,6 +222,29 @@ def test_uninstall_mcp_config_returns_false_when_not_present(
     assert not uninstall_mcp_config(json_mcp_client, Scope.PROJECT, tmp_path)
 
 
+def test_uninstall_mcp_config_json_returns_false_for_empty_file(
+    tmp_path: Path, json_mcp_client: Client, json_mcp_project_path: Path
+) -> None:
+    json_mcp_project_path.write_text("")
+    assert not uninstall_mcp_config(json_mcp_client, Scope.PROJECT, tmp_path)
+
+
+def test_uninstall_mcp_config_json_returns_false_when_helix_absent(
+    tmp_path: Path, json_mcp_client: Client, json_mcp_project_path: Path
+) -> None:
+    json_mcp_project_path.write_text(
+        json.dumps({"mcpServers": {"other": {"command": "other"}}})
+    )
+    assert not uninstall_mcp_config(json_mcp_client, Scope.PROJECT, tmp_path)
+
+
+def test_uninstall_mcp_config_toml_returns_false_when_helix_absent(
+    tmp_path: Path, toml_mcp_client: Client, toml_mcp_global_path: Path
+) -> None:
+    toml_mcp_global_path.write_text('[other_section]\nkey = "value"\n')
+    assert not uninstall_mcp_config(toml_mcp_client, Scope.GLOBAL, tmp_path)
+
+
 def test_install_mcp_config_toml_creates_file(
     tmp_path: Path, toml_mcp_client: Client
 ) -> None:
