@@ -2,7 +2,7 @@ from pathlib import Path
 
 from helix.core.settings import Settings
 
-from .models import Client, Scope, SnippetBlock
+from .models import Client, McpConfigFormat, Scope, SnippetBlock
 from .snippet import BLOCK_PATTERN, END_MARKER, SNIPPET, START_MARKER
 
 
@@ -14,6 +14,8 @@ def clients() -> list[Client]:
             name="Claude Code",
             global_path=home / ".claude" / "CLAUDE.md",
             project_relative_path=Path("CLAUDE.md"),
+            mcp_global_path=home / ".claude.json",
+            mcp_project_relative_path=Path(".mcp.json"),
         ),
         Client(
             key="cursor",
@@ -22,18 +24,24 @@ def clients() -> list[Client]:
             project_relative_path=Path(".cursor") / "rules" / "helix.mdc",
             preamble="---\nalwaysApply: true\n---",
             detect_path=home / ".cursor",
+            mcp_global_path=home / ".cursor" / "mcp.json",
+            mcp_project_relative_path=Path(".cursor") / "mcp.json",
         ),
         Client(
             key="codex",
             name="Codex CLI",
             global_path=home / ".codex" / "AGENTS.md",
             project_relative_path=Path("AGENTS.md"),
+            mcp_global_path=home / ".codex" / "config.toml",
+            mcp_format=McpConfigFormat.TOML,
         ),
         Client(
             key="opencode",
             name="Opencode",
             global_path=home / ".config" / "opencode" / "AGENTS.md",
             project_relative_path=Path("AGENTS.md"),
+            mcp_global_path=home / ".config" / "opencode" / "opencode.json",
+            mcp_project_relative_path=Path("opencode.json"),
         ),
     ]
 

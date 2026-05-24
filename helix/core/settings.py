@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 
 class AppSettings(BaseSettings):
     HOME_DIRECTORY: Path = Field(default=Path.home())
+    HELIX_REQUIRE_CONFIRM: bool = Field(default=False)
 
     @property
     def HELIX_BRAIN(self) -> Path:

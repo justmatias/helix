@@ -7,7 +7,8 @@ import typer
 
 from helix.core import Brain, Scope, detect_snippet_blocks, install, uninstall
 from helix.core.installer import clients as all_clients
-from helix.core.installer import detect_installed_clients
+from helix.core.installer import detect_installed_clients, install_mcp_config
+from helix.mcp.app import run_mcp_server
 from helix.utils import parse_csv
 
 from .prompts import pick, pick_many
@@ -92,6 +93,10 @@ def cmd_install() -> None:
         written.add(path)
         typer.echo(f"Wrote helix block to {path} ({client.name})")
 
+        mcp_path = install_mcp_config(client, scope, project_root)
+        if mcp_path is not None:
+            typer.echo(f"Wrote MCP server config to {mcp_path} ({client.name})")
+
     if not shutil.which("helix"):  # pragma: no cover
         typer.echo(
             "\nWarning: 'helix' is not on PATH. The installed snippet tells agents "
@@ -99,6 +104,10 @@ def cmd_install() -> None:
             "PATH (e.g. `pipx install helix` or `uv tool install helix`).",
             err=True,
         )
+
+
+def cmd_serve() -> None:  # pragma: no cover
+    run_mcp_server()
 
 
 def cmd_uninstall() -> None:
@@ -132,5 +141,6 @@ COMMANDS: dict[str, Callable[..., None]] = {
     "list": cmd_list,
     "recall": cmd_recall,
     "remember": cmd_remember,
+    "serve": cmd_serve,
     "uninstall": cmd_uninstall,
 }

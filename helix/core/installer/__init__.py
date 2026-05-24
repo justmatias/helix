@@ -1,13 +1,14 @@
 # pylint: disable=duplicate-code
-from helix.core.installer.models import Client, Scope, SnippetBlock
-from helix.core.installer.operations import (
+from .mcp_config import install_mcp_config, uninstall_mcp_config
+from .models import Client, McpConfigFormat, Scope, SnippetBlock
+from .operations import (
     clients,
     detect_installed_clients,
     detect_snippet_blocks,
     install,
     uninstall,
 )
-from helix.core.installer.snippet import (
+from .snippet import (
     BLOCK_PATTERN,
     END_MARKER,
     SNIPPET,
@@ -20,11 +21,14 @@ __all__ = [
     "SNIPPET",
     "START_MARKER",
     "Client",
+    "McpConfigFormat",
     "Scope",
     "SnippetBlock",
     "clients",
     "detect_installed_clients",
     "detect_snippet_blocks",
     "install",
+    "install_mcp_config",
     "uninstall",
+    "uninstall_mcp_config",
 ]

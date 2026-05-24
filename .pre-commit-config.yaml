@@ -17,7 +17,7 @@ repos:
       - id: gitleaks
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.15.13'
+    rev: 'v0.15.14'
     hooks:
       - id: ruff-check
         name: ruff
@@ -29,6 +29,11 @@ repos:
       - id: bandit
         args: ['-r', '-lll']
 
+  - repo: https://github.com/justmatias/pre-commit-uv-sync
+    rev: v1.0.1
+    hooks:
+      - id: sync-uv-additional-deps
+
   - repo: https://github.com/pylint-dev/pylint
     rev: v4.0.5
     hooks:
@@ -38,6 +43,8 @@ repos:
           - loguru==0.7.3
           - pydantic==2.13.4
           - pytest==9.0.3
+          - fastmcp==3.3.1
+          - pydantic-settings==2.14.1
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.1.0
@@ -47,3 +54,5 @@ repos:
           - loguru==0.7.3
           - pydantic==2.13.4
           - pytest==9.0.3
+          - fastmcp==3.3.1
+          - pydantic-settings==2.14.1

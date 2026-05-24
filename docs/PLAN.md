@@ -85,7 +85,7 @@ Why this shape:
 - **Same path from terminal** — `helix remember --name X --tags a,b "body"` calls the same MCP tool with explicit flags.
 - **Editable after the fact** — it's just markdown, so `$EDITOR ~/.dev_brain/conventions/foo.md` works anytime. No reindexing (grep reads files fresh).
 
-Confirmation policy: write-immediately by default. Claude Code's tool-call preview is the natural confirmation step. For clients that auto-approve tools, a server config flag can require an explicit `confirm=true` second call.
+Confirmation policy: write-immediately by default. Claude Code's tool-call preview is the natural confirmation step. For clients that auto-approve tools, set `HELIX_REQUIRE_CONFIRM=1` in the server's environment — `remember` and `forget` then return a dry-run preview (resolved path + file contents) on the first call and only mutate on a second call with `confirm=True`. `recall` and `list_conventions` are read-only and ignore the flag.
 
 ---
 
@@ -200,19 +200,18 @@ Track build progress here. Items mirror the Build Order phases.
        - writes an idempotent snippet wrapped in `<!-- helix:start -->` / `<!-- helix:end -->` markers so re-runs update in place
        - warns if `helix` is not on PATH (the snippet's `helix list` call would otherwise fail); detection only, no PATH/shell mutation
        - Step 1 snippet: *"run `helix list` at session start"*; Step 2 will swap in the MCP `list_conventions` instruction
-     - [ ] Dogfood for ~1 week before moving to Step 2
 
      ### Step 2 — MCP Server
-     - [ ] Add `fastmcp` dep
-     - [ ] Wrap `remember`, `recall`, `list_conventions`, `forget` as MCP tools (shared core with CLI)
-     - [ ] `helix serve` command to launch the MCP server
-     - [ ] Write a `CLAUDE.md` snippet: instruct agent to call `list_conventions(tags=[<stack>])` on first turn
-     - [ ] Document Claude Code + Cursor MCP config to point at `helix serve`
-     - [ ] Extend `helix install` to also write each selected client's MCP server
+     - [x] Add `fastmcp` dep
+     - [x] Wrap `remember`, `recall`, `list_conventions`, `forget` as MCP tools (shared core with CLI)
+     - [x] `helix serve` command to launch the MCP server
+     - [x] Write a `CLAUDE.md` snippet: instruct agent to call `list_conventions(tags=[<stack>])` on first turn
+     - [x] Document Claude Code + Cursor MCP config to point at `helix serve`
+     - [x] Extend `helix install` to also write each selected client's MCP server
        config (pointing at `helix serve`) alongside the instruction snippet —
        same multi-select/scope flow, idempotent, per-client config format
        (e.g. `.mcp.json`, Cursor `mcp.json`, `~/.codex/config.toml`)
-     - [ ] Decide confirmation policy default (write-immediately) and config flag for clients that auto-approve
+     - [x] Decide confirmation policy default (write-immediately) and config flag for clients that auto-approve
 
      ### Step 3 — Project Overrides
      - [ ] Detect current repo name (git remote URL or cwd basename)

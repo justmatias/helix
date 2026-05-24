@@ -9,6 +9,7 @@ authors = [
 ]
 
 dependencies = [
+    "fastmcp>=3.3.1",
     "loguru>=0.7.3",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.1",
@@ -128,6 +129,7 @@ disable_error_code = ["var-annotated"]
 cli = "python helix/cli/app.py"
 format = "pre-commit run --all-files --verbose"
 test = "pytest --cov=tests --cov=helix --cov-report=term-missing:skip-covered"
+mcp = "python helix/mcp/main.py"
 
 
 ##################################

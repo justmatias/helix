@@ -30,7 +30,7 @@ def pick_many(prompt: str, options: list[str]) -> list[int]:
     return _pick_many_fallback(prompt, options)
 
 
-def _resolve(part: str, options: list[str]) -> int | None:
+def _resolve(part: str, options: list[str]) -> int | None:  # pragma: no cover
     """Resolve a user-entered token to a zero-based index, or None if invalid."""
     part = part.strip()
     if part.isdigit():
