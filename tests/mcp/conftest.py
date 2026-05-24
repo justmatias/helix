@@ -1,8 +1,17 @@
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 
 import pytest
 
 from helix.core import Brain
+from helix.core.settings import Settings
+
+
+@pytest.fixture
+def _require_confirm() -> Generator[None]:
+    original = Settings.HELIX_REQUIRE_CONFIRM
+    Settings.HELIX_REQUIRE_CONFIRM = True
+    yield
+    Settings.HELIX_REQUIRE_CONFIRM = original
 
 
 @pytest.fixture(autouse=True)

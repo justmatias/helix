@@ -85,7 +85,7 @@ Why this shape:
 - **Same path from terminal** — `helix remember --name X --tags a,b "body"` calls the same MCP tool with explicit flags.
 - **Editable after the fact** — it's just markdown, so `$EDITOR ~/.dev_brain/conventions/foo.md` works anytime. No reindexing (grep reads files fresh).
 
-Confirmation policy: write-immediately by default. Claude Code's tool-call preview is the natural confirmation step. For clients that auto-approve tools, a server config flag can require an explicit `confirm=true` second call.
+Confirmation policy: write-immediately by default. Claude Code's tool-call preview is the natural confirmation step. For clients that auto-approve tools, set `HELIX_REQUIRE_CONFIRM=1` in the server's environment — `remember` and `forget` then return a dry-run preview (resolved path + file contents) on the first call and only mutate on a second call with `confirm=True`. `recall` and `list_conventions` are read-only and ignore the flag.
 
 ---
 
