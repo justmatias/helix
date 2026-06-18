@@ -29,8 +29,8 @@ repos:
       - id: bandit
         args: ['-r', '-lll']
 
-  - repo: https://github.com/justmatias/pre-commit-uv-sync
-    rev: v1.0.1
+  - repo: https://github.com/justmatias/hookpin
+    rev: v7.0.1
     hooks:
       - id: sync-uv-additional-deps
 
