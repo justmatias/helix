@@ -32,7 +32,7 @@ repos:
   - repo: https://github.com/justmatias/hookpin
     rev: v7.0.1
     hooks:
-      - id: sync-uv-additional-deps
+      - id: hookpin
 
   - repo: https://github.com/pylint-dev/pylint
     rev: v4.0.5
