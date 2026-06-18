@@ -1,6 +1,65 @@
 # CHANGELOG
 
 
+## v4.1.1 (2026-06-18)
+
+### Bug Fixes
+
+- **deps**: Bump python-multipart from 0.0.29 to 0.0.31
+  ([#7](https://github.com/justmatias/helix/pull/7),
+  [`17957db`](https://github.com/justmatias/helix/commit/17957db01131fe55914bb3c41754c052a641d6a0))
+
+Bumps [python-multipart](https://github.com/Kludex/python-multipart) from 0.0.29 to 0.0.31. -
+  [Release notes](https://github.com/Kludex/python-multipart/releases) -
+  [Changelog](https://github.com/Kludex/python-multipart/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/Kludex/python-multipart/compare/0.0.29...0.0.31)
+
+--- updated-dependencies: - dependency-name: python-multipart dependency-version: 0.0.31
+
+dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+### Chores
+
+- Update hookpin pre-commit hook and bump helix-memory version to 4.1.0
+  ([`a4947ae`](https://github.com/justmatias/helix/commit/a4947ae1ef6ca6136b847a3d66a4e55227e68872))
+
+- **deps**: Bump cryptography from 48.0.0 to 48.0.1
+  ([#8](https://github.com/justmatias/helix/pull/8),
+  [`3ce70ac`](https://github.com/justmatias/helix/commit/3ce70ac6637a335a372a503513fc97441caf7cc9))
+
+Bumps [cryptography](https://github.com/pyca/cryptography) from 48.0.0 to 48.0.1. -
+  [Changelog](https://github.com/pyca/cryptography/blob/main/CHANGELOG.rst) -
+  [Commits](https://github.com/pyca/cryptography/compare/48.0.0...48.0.1)
+
+--- updated-dependencies: - dependency-name: cryptography dependency-version: 48.0.1
+
+dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump starlette from 1.1.0 to 1.3.1 ([#9](https://github.com/justmatias/helix/pull/9),
+  [`0aabbe5`](https://github.com/justmatias/helix/commit/0aabbe536efd6ab593112330c8b7ae8e664e0baa))
+
+Bumps [starlette](https://github.com/Kludex/starlette) from 1.1.0 to 1.3.1. - [Release
+  notes](https://github.com/Kludex/starlette/releases) -
+  [Changelog](https://github.com/Kludex/starlette/blob/main/docs/release-notes.md) -
+  [Commits](https://github.com/Kludex/starlette/compare/1.1.0...1.3.1)
+
+--- updated-dependencies: - dependency-name: starlette dependency-version: 1.3.1
+
+dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+
 ## v4.1.0 (2026-05-24)
 
 ### Features
