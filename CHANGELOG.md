@@ -1,6 +1,39 @@
 # CHANGELOG
 
 
+## v4.1.3 (2026-06-25)
+
+### Bug Fixes
+
+- **deps**: Bump pydantic-settings from 2.14.1 to 2.14.2
+  ([#11](https://github.com/justmatias/helix/pull/11),
+  [`1fda74e`](https://github.com/justmatias/helix/commit/1fda74eba67924761621a3ce8cf26e50f02afd62))
+
+* fix(deps): bump pydantic-settings from 2.14.1 to 2.14.2
+
+Bumps [pydantic-settings](https://github.com/pydantic/pydantic-settings) from 2.14.1 to 2.14.2. -
+  [Release notes](https://github.com/pydantic/pydantic-settings/releases) -
+  [Commits](https://github.com/pydantic/pydantic-settings/compare/v2.14.1...v2.14.2)
+
+--- updated-dependencies: - dependency-name: pydantic-settings dependency-version: 2.14.2
+
+dependency-type: direct:production ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore(config): update pre-commit hooks
+
+* chore(ci): add pre-commit hook synchronization and stage all changes for hook updates
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+Co-authored-by: Matias Gimenez <matiasgimenez.dev@gmail.com>
+
+
 ## v4.1.2 (2026-06-25)
 
 ### Bug Fixes
