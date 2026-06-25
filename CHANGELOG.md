@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## v4.1.2 (2026-06-25)
+
+### Bug Fixes
+
+- **deps**: Bump actions/checkout from 6 to 7 ([#10](https://github.com/justmatias/helix/pull/10),
+  [`3a026c4`](https://github.com/justmatias/helix/commit/3a026c4dec42b768076dee1f6b3b698a5d58a9ff))
+
+* fix(deps): bump actions/checkout from 6 to 7
+
+Bumps [actions/checkout](https://github.com/actions/checkout) from 6 to 7. - [Release
+  notes](https://github.com/actions/checkout/releases) -
+  [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md) -
+  [Commits](https://github.com/actions/checkout/compare/v6...v7)
+
+--- updated-dependencies: - dependency-name: actions/checkout dependency-version: '7'
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore(config): update pre-commit hooks
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+
 ## v4.1.1 (2026-06-18)
 
 ### Bug Fixes
