@@ -17,7 +17,7 @@ repos:
       - id: gitleaks
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.15.20'
+    rev: 'v0.16.1'
     hooks:
       - id: ruff-check
         name: ruff
@@ -30,7 +30,7 @@ repos:
         args: ['-r', '-lll']
 
   - repo: https://github.com/justmatias/hookpin
-    rev: v7.0.1
+    rev: v7.0.2
     hooks:
       - id: hookpin
 
@@ -47,7 +47,7 @@ repos:
           - pydantic-settings==2.14.2
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.1.0
+    rev: v2.3.0
     hooks:
       - id: mypy
         additional_dependencies:
