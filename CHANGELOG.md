@@ -1,6 +1,75 @@
 # CHANGELOG
 
 
+## v4.1.4 (2026-08-09)
+
+### Bug Fixes
+
+- **deps**: Bump cryptography from 48.0.1 to 50.0.0
+  ([#15](https://github.com/justmatias/helix/pull/15),
+  [`b531ef3`](https://github.com/justmatias/helix/commit/b531ef37f9a5c45c142ca06aa791cafc762b7ea3))
+
+* fix(deps): bump cryptography from 48.0.1 to 50.0.0
+
+Bumps [cryptography](https://github.com/pyca/cryptography) from 48.0.1 to 50.0.0. -
+  [Changelog](https://github.com/pyca/cryptography/blob/main/CHANGELOG.rst) -
+  [Commits](https://github.com/pyca/cryptography/compare/48.0.1...50.0.0)
+
+--- updated-dependencies: - dependency-name: cryptography dependency-version: 50.0.0
+
+dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore(config): update pre-commit hooks
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+- **deps**: Bump joserfc from 1.6.7 to 1.6.8 ([#12](https://github.com/justmatias/helix/pull/12),
+  [`1fa8c74`](https://github.com/justmatias/helix/commit/1fa8c74081313f9e28e910b88f84f673d6866410))
+
+Bumps [joserfc](https://github.com/authlib/joserfc) from 1.6.7 to 1.6.8. - [Release
+  notes](https://github.com/authlib/joserfc/releases) -
+  [Changelog](https://github.com/authlib/joserfc/blob/main/docs/changelog.rst) -
+  [Commits](https://github.com/authlib/joserfc/compare/1.6.7...1.6.8)
+
+--- updated-dependencies: - dependency-name: joserfc dependency-version: 1.6.8
+
+dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps**: Bump mcp from 1.27.1 to 1.28.1 ([#14](https://github.com/justmatias/helix/pull/14),
+  [`d01924e`](https://github.com/justmatias/helix/commit/d01924e647919231f565d41961d01b60330f1a77))
+
+* fix(deps): bump mcp from 1.27.1 to 1.28.1
+
+--- updated-dependencies: - dependency-name: mcp dependency-version: 1.28.1
+
+dependency-type: indirect ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore(config): update pre-commit hooks
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+### Chores
+
+- Update uv version
+  ([`039887b`](https://github.com/justmatias/helix/commit/039887bef7b83a3aa84b95552cad3b9f79c76a6c))
+
+
 ## v4.1.3 (2026-06-25)
 
 ### Bug Fixes
