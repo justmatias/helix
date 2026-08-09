@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from helix.core.installer.models import Client, McpConfigFormat
+from helix.core.installer.models import Client
+from helix.core.installer.targets import (
+    OPENCODE_MCP_FORMAT,
+    McpConfigTarget,
+    SnippetTarget,
+)
 from helix.core.settings import Settings
 
 
@@ -9,9 +14,15 @@ def opencode() -> Client:
     return Client(
         key="opencode",
         name="Opencode",
-        global_path=home / ".config" / "opencode" / "AGENTS.md",
-        project_relative_path=Path("AGENTS.md"),
-        mcp_global_path=home / ".config" / "opencode" / "opencode.json",
-        mcp_project_relative_path=Path("opencode.json"),
-        mcp_format=McpConfigFormat.OPENCODE,
+        snippet=SnippetTarget(
+            global_path=home / ".config" / "opencode" / "AGENTS.md",
+            project_relative_path=Path("AGENTS.md"),
+        ),
+        extra_targets=[
+            McpConfigTarget(
+                global_path=home / ".config" / "opencode" / "opencode.json",
+                project_relative_path=Path("opencode.json"),
+                config_format=OPENCODE_MCP_FORMAT,
+            ),
+        ],
     )

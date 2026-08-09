@@ -1,92 +1,50 @@
-from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
+from .scope import Scope
+from .targets import InstallTarget, SnippetTarget
 
-class Scope(StrEnum):
-    GLOBAL = "global"
-    PROJECT = "project"
-
-
-class McpConfigFormat(StrEnum):
-    JSON = "json"
-    TOML = "toml"
-    # Opencode's schema uses a `mcp.<name>` object with a `local`/`command`-array
-    # shape, not the generic `mcpServers` object other JSON-based clients accept.
-    OPENCODE = "opencode"
+__all__ = ["Client", "Scope", "SnippetBlock"]
 
 
 class Client(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     key: str = Field(description="Stable identifier for the client (e.g. 'claude').")
     name: str = Field(description="Human-readable client name shown in CLI prompts.")
-    global_path: Path = Field(
-        description="Absolute path to the client's per-user (global) config file."
+    snippet: SnippetTarget = Field(
+        description="The instruction-snippet target every client has."
     )
-    project_relative_path: Path = Field(
-        description="Config file path relative to a project root, for project scope."
-    )
-    preamble: str | None = Field(
-        default=None,
-        description="Content prepended when creating a new config file (e.g. frontmatter).",
+    extra_targets: list[InstallTarget] = Field(
+        default_factory=list,
+        description="Additional targets (MCP config, session hook) this client supports.",
     )
     detect_path: Path | None = Field(
         default=None,
         description=(
             "Directory checked to detect whether the client is installed. "
-            "Defaults to global_path.parent when None."
+            "Defaults to snippet.global_path.parent when None."
         ),
-    )
-    mcp_global_path: Path | None = Field(
-        default=None,
-        description="Absolute path to the client's global MCP server config file.",
-    )
-    mcp_project_relative_path: Path | None = Field(
-        default=None,
-        description="MCP config file path relative to project root, for project scope.",
-    )
-    mcp_format: McpConfigFormat = Field(
-        default=McpConfigFormat.JSON,
-        description="File format used by this client's MCP config.",
-    )
-    hook_global_path: Path | None = Field(
-        default=None,
-        description="Absolute path to the client's global session-hook settings file.",
-    )
-    hook_project_relative_path: Path | None = Field(
-        default=None,
-        description="Session-hook settings path relative to project root.",
     )
 
     @property
+    def all_targets(self) -> list[InstallTarget]:
+        return [self.snippet, *self.extra_targets]
+
+    @property
     def installation_directory(self) -> Path:
-        return (
-            self.detect_path
-            if self.detect_path is not None
-            else self.global_path.parent
-        )
+        if self.detect_path is not None:
+            return self.detect_path
+        return self.snippet.global_path.parent
 
     def path_for(self, scope: Scope, project_root: Path) -> Path:
-        if scope == Scope.GLOBAL:
-            return self.global_path
-        return project_root / self.project_relative_path
-
-    def mcp_path_for(self, scope: Scope, project_root: Path) -> Path | None:
-        if scope == Scope.GLOBAL:
-            return self.mcp_global_path
-        if self.mcp_project_relative_path is None:
-            return None
-        return project_root / self.mcp_project_relative_path
-
-    def hook_path_for(self, scope: Scope, project_root: Path) -> Path | None:
-        if scope == Scope.GLOBAL:
-            return self.hook_global_path
-        if not self.hook_project_relative_path:
-            return None
-        return project_root / self.hook_project_relative_path
+        return self.snippet.path_for(scope, project_root)
 
 
 class SnippetBlock(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     client: Client = Field(description="The client whose config file holds the block.")
     scope: Scope = Field(
         description="Whether the block was found in global or project scope."

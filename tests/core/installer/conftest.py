@@ -1,17 +1,16 @@
-import json
-import subprocess
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from helix.core import (
+from helix.core import clients
+from helix.core.installer import (
+    JSON_MCP_FORMAT,
+    OPENCODE_MCP_FORMAT,
+    TOML_MCP_FORMAT,
     Client,
-    McpConfigFormat,
+    HookTarget,
+    McpConfigTarget,
     Scope,
-    clients,
-    install_hook,
-    uninstall_hook,
 )
 
 
@@ -26,90 +25,36 @@ def cursor_client() -> Client:
 
 
 @pytest.fixture
-def json_mcp_client(tmp_path: Path) -> Client:
-    return Client(
-        key="test-json",
-        name="Test JSON",
-        global_path=tmp_path / ".testclient" / "AGENTS.md",
-        project_relative_path=Path("AGENTS.md"),
-        mcp_global_path=tmp_path / ".testclient" / "mcp.json",
-        mcp_project_relative_path=Path(".testclient") / "mcp.json",
+def hook_target(claude_client: Client) -> HookTarget:
+    """Claude Code — the only client with a SessionStart hook target."""
+    return next(t for t in claude_client.extra_targets if isinstance(t, HookTarget))
+
+
+@pytest.fixture
+def json_mcp_target(tmp_path: Path) -> McpConfigTarget:
+    return McpConfigTarget(
+        global_path=tmp_path / ".testclient" / "mcp.json",
+        project_relative_path=Path(".testclient") / "mcp.json",
+        config_format=JSON_MCP_FORMAT,
     )
 
 
 @pytest.fixture
-def toml_mcp_client(tmp_path: Path) -> Client:
-    return Client(
-        key="test-toml",
-        name="Test TOML",
-        global_path=tmp_path / ".testclient" / "AGENTS.md",
-        project_relative_path=Path("AGENTS.md"),
-        mcp_global_path=tmp_path / ".testclient" / "config.toml",
-        mcp_format=McpConfigFormat.TOML,
+def toml_mcp_target(tmp_path: Path) -> McpConfigTarget:
+    return McpConfigTarget(
+        global_path=tmp_path / ".testclient" / "config.toml",
+        project_relative_path=None,
+        config_format=TOML_MCP_FORMAT,
     )
 
 
 @pytest.fixture
-def opencode_mcp_client(tmp_path: Path) -> Client:
-    return Client(
-        key="test-opencode",
-        name="Test Opencode",
-        global_path=tmp_path / ".testclient" / "AGENTS.md",
-        project_relative_path=Path("AGENTS.md"),
-        mcp_global_path=tmp_path / ".testclient" / "opencode.json",
-        mcp_project_relative_path=Path(".testclient") / "opencode.json",
-        mcp_format=McpConfigFormat.OPENCODE,
+def opencode_mcp_target(tmp_path: Path) -> McpConfigTarget:
+    return McpConfigTarget(
+        global_path=tmp_path / ".testclient" / "opencode.json",
+        project_relative_path=Path(".testclient") / "opencode.json",
+        config_format=OPENCODE_MCP_FORMAT,
     )
-
-
-@pytest.fixture
-def json_mcp_project_path(json_mcp_client: Client, tmp_path: Path) -> Path:
-    path = json_mcp_client.mcp_path_for(Scope.PROJECT, tmp_path)
-    assert path is not None
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-@pytest.fixture
-def opencode_mcp_project_path(opencode_mcp_client: Client, tmp_path: Path) -> Path:
-    path = opencode_mcp_client.mcp_path_for(Scope.PROJECT, tmp_path)
-    assert path is not None
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-@pytest.fixture
-def toml_mcp_global_path(toml_mcp_client: Client, tmp_path: Path) -> Path:
-    path = toml_mcp_client.mcp_path_for(Scope.GLOBAL, tmp_path)
-    assert path is not None
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-@pytest.fixture
-def hook_client(claude_client: Client) -> Client:
-    """Claude Code — the only client with SessionStart hook settings."""
-    return claude_client
-
-
-@pytest.fixture
-def hook_global_path(hook_client: Client, tmp_path: Path) -> Path:
-    path = hook_client.hook_path_for(Scope.GLOBAL, tmp_path)
-    assert path is not None
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-@pytest.fixture
-def install_hook_globally(hook_client: Client) -> Callable[[], Path | None]:
-    """Return a callable that installs ``hook_client``'s SessionStart hook globally."""
-    return lambda: install_hook(hook_client, Scope.GLOBAL, Path.cwd())
-
-
-@pytest.fixture
-def uninstall_hook_globally(hook_client: Client) -> Callable[[], bool]:
-    """Return a callable that removes ``hook_client``'s global SessionStart hook."""
-    return lambda: uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
 
 
 @pytest.fixture
@@ -143,33 +88,8 @@ def _create_cursor_global_directory(tmp_path: Path) -> None:
 
 
 @pytest.fixture
-def _claude_cli_available(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make ``shutil.which('claude')`` resolve, as if the CLI were on PATH."""
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.shutil.which", lambda _name: "/usr/bin/claude"
-    )
-
-
-@pytest.fixture
-def _claude_cli_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make ``shutil.which('claude')`` resolve to nothing."""
-    monkeypatch.setattr("helix.core.installer.mcp_config.shutil.which", lambda _name: None)
-
-
-@pytest.fixture
-def claude_cli_calls(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
-    """Record every argv the installer passes to ``subprocess.run`` for the claude CLI."""
-    calls: list[list[str]] = []
-
-    def _run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
-        calls.append(cmd)
-        return subprocess.CompletedProcess(cmd, 0)
-
-    monkeypatch.setattr("helix.core.installer.mcp_config.subprocess.run", _run)
-    return calls
-
-
-@pytest.fixture
-def _write_foreign_settings(hook_global_path: Path) -> None:
-    """Seed ``hook_global_path`` with a pre-existing, unrelated settings key."""
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
+def hook_global_path(hook_target: HookTarget, tmp_path: Path) -> Path:
+    path = hook_target.path_for(Scope.GLOBAL, tmp_path)
+    assert path is not None
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path

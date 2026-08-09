@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 import typer
 
-from helix.core import Brain, Client, Scope, Settings, clients, install
+from helix.core import Brain, Client, Scope, Settings, clients
 
 
 @pytest.fixture
@@ -58,5 +58,5 @@ def _create_claude_directory() -> None:
 
 @pytest.fixture
 def _install_claude_client(claude: Client, working_dir: Path) -> None:
-    """Install a helix block for the Claude Code client in ``working_dir``."""
-    install(claude, Scope.PROJECT, working_dir)
+    """Install the helix snippet block for the Claude Code client in ``working_dir``."""
+    claude.snippet.install(Scope.PROJECT, working_dir)

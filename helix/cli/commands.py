@@ -5,35 +5,13 @@ from typing import Annotated
 
 import typer
 
-from helix.core import (
-    Brain,
-    Scope,
-    detect_snippet_blocks,
-    install,
-    install_hook,
-    install_mcp_config,
-    uninstall,
-    uninstall_hook,
-    uninstall_mcp_config,
-)
+from helix.core import Brain, Scope, detect_snippet_blocks
 from helix.mcp import run_mcp_server
-from helix.utils import (
-    parse_csv,
-    resolve_text_argument,
-    slugify,
-    warn_on_invalid_config,
-)
+from helix.utils import parse_csv, resolve_text_argument, slugify
 
 from .prompts import pick, pick_many, select_clients
 
 INDEX_HEADER = "# Helix Convention Index"
-
-# Installer functions raise InvalidConfigError on a malformed client config file;
-# the CLI is the boundary that reports it and moves on instead of crashing.
-safe_install_mcp_config = warn_on_invalid_config(install_mcp_config)
-safe_uninstall_mcp_config = warn_on_invalid_config(uninstall_mcp_config)
-safe_install_hook = warn_on_invalid_config(install_hook)
-safe_uninstall_hook = warn_on_invalid_config(uninstall_hook)
 
 
 def cmd_remember(
@@ -142,30 +120,23 @@ def cmd_install(
 
     project_root = Path.cwd()
     written: set[Path] = set()
-    hooked = False
+    notice_restart = False
     for selected_client in selected:
-        path = selected_client.path_for(scope, project_root)
-        if path in written:  # pragma: no cover
-            typer.echo(f"Skipped {selected_client.name}: {path} already written")
+        snippet_path = selected_client.path_for(scope, project_root)
+        if snippet_path in written:  # pragma: no cover
+            typer.echo(f"Skipped {selected_client.name}: {snippet_path} already written")
             continue
-        install(selected_client, scope, project_root)
-        written.add(path)
-        typer.echo(f"Wrote helix block to {path} ({selected_client.name})")
+        written.add(snippet_path)
 
-        mcp_path = safe_install_mcp_config(selected_client, scope, project_root)
-        if mcp_path is not None:
-            typer.echo(
-                f"Wrote MCP server config to {mcp_path} ({selected_client.name})"
-            )
+        for target in selected_client.all_targets:
+            path = target.install(scope, project_root)
+            if path is None:
+                continue
+            typer.echo(f"Wrote {target.label} to {path} ({selected_client.name})")
+            if target.needs_restart_notice:
+                notice_restart = True
 
-        hook_path = safe_install_hook(selected_client, scope, project_root)
-        if hook_path is not None:
-            typer.echo(
-                f"Wrote SessionStart hook to {hook_path} ({selected_client.name})"
-            )
-            hooked = True
-
-    if hooked:
+    if notice_restart:
         typer.echo("\nRestart your client for the SessionStart hook to take effect.")
 
     if not shutil.which("helix"):  # pragma: no cover
@@ -203,17 +174,17 @@ def cmd_uninstall(
 
     removed_any = False
     for block in selected:
-        if uninstall(block.client, block.scope, project_root):
-            typer.echo(f"Removed helix block from {block.path}")
+        block_removed = False
+        for target in block.client.all_targets:
+            path = target.path_for(block.scope, project_root)
+            if target.uninstall(block.scope, project_root):
+                typer.echo(f"Removed {target.label} from {path}")
+                block_removed = True
+
+        if block_removed:
             removed_any = True
         else:
             typer.echo(f"Nothing to remove from {block.path}", err=True)
-
-        if safe_uninstall_mcp_config(block.client, block.scope, project_root):
-            typer.echo(f"Removed MCP server config for {block.client.name}")
-
-        if safe_uninstall_hook(block.client, block.scope, project_root):
-            typer.echo(f"Removed SessionStart hook for {block.client.name}")
 
     if not removed_any:
         raise typer.Exit(1)

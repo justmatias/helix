@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from helix.core.installer.models import Client
+from helix.core.installer.targets import JSON_MCP_FORMAT, McpConfigTarget, SnippetTarget
 from helix.core.settings import Settings
 
 
@@ -9,10 +10,17 @@ def cursor() -> Client:
     return Client(
         key="cursor",
         name="Cursor",
-        global_path=home / ".cursor" / "rules" / "helix.mdc",
-        project_relative_path=Path(".cursor") / "rules" / "helix.mdc",
-        preamble="---\nalwaysApply: true\n---",
+        snippet=SnippetTarget(
+            global_path=home / ".cursor" / "rules" / "helix.mdc",
+            project_relative_path=Path(".cursor") / "rules" / "helix.mdc",
+            preamble="---\nalwaysApply: true\n---",
+        ),
         detect_path=home / ".cursor",
-        mcp_global_path=home / ".cursor" / "mcp.json",
-        mcp_project_relative_path=Path(".cursor") / "mcp.json",
+        extra_targets=[
+            McpConfigTarget(
+                global_path=home / ".cursor" / "mcp.json",
+                project_relative_path=Path(".cursor") / "mcp.json",
+                config_format=JSON_MCP_FORMAT,
+            ),
+        ],
     )
