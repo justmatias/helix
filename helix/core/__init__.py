@@ -13,8 +13,10 @@ from .installer import (
     detect_installed_clients,
     detect_snippet_blocks,
     install,
+    install_hook,
     install_mcp_config,
     uninstall,
+    uninstall_hook,
     uninstall_mcp_config,
 )
 from .settings import Settings
@@ -35,7 +37,9 @@ __all__ = [
     "detect_installed_clients",
     "detect_snippet_blocks",
     "install",
+    "install_hook",
     "install_mcp_config",
     "uninstall",
+    "uninstall_hook",
     "uninstall_mcp_config",
 ]

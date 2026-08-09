@@ -42,7 +42,6 @@ Plain markdown, no database. One convention per file.
 ---
 name: pydantic-validation
 tags: [python, validation]
-applies_to: [python]
 ---
 
 Prefer Pydantic v2 for any external-boundary validation. Reason: ...
@@ -60,7 +59,7 @@ Built with `FastMCP`. Multi-client (Claude Code, Cursor, etc.) read/write the sa
 
 **Tools exposed:**
 
-- `remember(name, body, tags, applies_to?)` — writes a new file under `conventions/` and appends to `INDEX.md`. The session agent (the one talking to you) supplies the structured args; the server writes `body` **verbatim**. See _How `remember` works_ below.
+- `remember(name, body, tags?)` — writes a new file under `conventions/` and appends to `INDEX.md`. The session agent (the one talking to you) supplies the structured args; the server writes `body` **verbatim**. See _How `remember` works_ below.
 - `recall(query, tags?)` — ripgrep across files, returns matched snippets. Start text-only; add embeddings only if recall quality drops.
 - `list_conventions(tags?)` — returns `INDEX.md` filtered by tag/stack.
 - `forget(name)` — removes a file and its index entry.
@@ -83,7 +82,7 @@ Why this shape:
 - **No extra LLM call or cost** — structuring happens inside the existing agent turn.
 - **Faithful body** — Claude Code shows tool calls before executing, so you see what's about to be saved and can correct it on the spot (_"no, add 'except for internal dataclasses'"_).
 - **Same path from terminal** — `helix remember --name X --tags a,b "body"` calls the same MCP tool with explicit flags.
-- **Editable after the fact** — it's just markdown, so `$EDITOR ~/.dev_brain/conventions/foo.md` works anytime. No reindexing (grep reads files fresh).
+- **Editable after the fact** — it's just markdown, so `helix edit foo` (or `$EDITOR ~/.dev_brain/conventions/foo.md`) works anytime.
 
 Confirmation policy: write-immediately by default. Claude Code's tool-call preview is the natural confirmation step. For clients that auto-approve tools, set `HELIX_REQUIRE_CONFIRM=1` in the server's environment — `remember` and `forget` then return a dry-run preview (resolved path + file contents) on the first call and only mutate on a second call with `confirm=True`. `recall` and `list_conventions` are read-only and ignore the flag.
 
@@ -93,9 +92,10 @@ Confirmation policy: write-immediately by default. Claude Code's tool-call previ
 
 `Typer`-based. Same operations as the MCP tools, for terminal use:
 
-- `helix remember "<text>" --tags python,async` — append a convention.
-- `helix recall "<query>"` — search.
+- `helix remember "<text>" --tags python,async` — append a convention (name slugified from the body; `-` reads stdin, no argument opens `$EDITOR`).
+- `helix recall "<query>"` — search, returns whole conventions.
 - `helix list [--tags python]` — print the filtered index.
+- `helix edit <name>` — open a convention in `$EDITOR` and refresh its index line.
 - `helix serve` — start the MCP server.
 
 ---
@@ -189,7 +189,7 @@ Track build progress here. Items mirror the Build Order phases.
      ### Step 1 — Folder + CLI (MVP)
      - [x] Init Python project (`pyproject.toml`, add `typer` dep)
      - [x] Create `~/.dev_brain/` skeleton on first run: `conventions/`, empty `INDEX.md`
-     - [x] Define frontmatter schema (`name`, `tags`, `applies_to`) + a tiny parser
+     - [x] Define frontmatter schema (`name`, `tags`) + a tiny parser (`applies_to` was dropped — `tags` already covers it)
      - [x] `helix remember <slug> "<body>" --tags a,b` → write `conventions/<slug>.md` verbatim, append one line to `INDEX.md`
      - [x] `helix list [--tags python]` → print filtered `INDEX.md`
      - [x] `helix recall "<query>" [--tags ...]` → search conventions, return matched snippets with file paths
@@ -225,9 +225,17 @@ Track build progress here. Items mirror the Build Order phases.
      - [ ] Keep ripgrep as fallback / hybrid
 
      ### Cross-cutting
-     - [ ] Tests for the frontmatter parser and `INDEX.md` writer (the only logic with real correctness risk)
+     - [x] Tests for the frontmatter parser and `INDEX.md` writer (the only logic with real correctness risk)
      - [ ] `helix doctor` command: sanity-check store integrity (orphaned files, broken index lines)
-     - [ ] README with install + first-run walkthrough
+     - [x] README with install + first-run walkthrough
+
+     ### UX / friction
+     - [x] `helix remember` derives the name from the body; `-` reads stdin, no argument opens `$EDITOR`
+     - [x] Claude Code `SessionStart` hook (`~/.claude/settings.json`) injects the index — no reliance on the agent following the snippet
+     - [x] `helix install` / `helix uninstall` take `--client`, `--scope`, `--yes` so they can run unattended
+     - [x] `recall` returns whole conventions instead of `path:lineno:line` fragments
+     - [x] `HELIX_BRAIN_DIR` overrides the store location (point it at a synced dotfiles repo)
+     - [x] `helix edit <name>` opens a convention in `$EDITOR` and refreshes its index line
 
      Verification
 

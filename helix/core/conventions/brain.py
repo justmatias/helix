@@ -31,21 +31,29 @@ class Brain:
         if not self.is_initialized:
             self.index.write_text("# Helix Convention Index\n\n")
 
-    def remember(
-        self,
-        *,
-        name: str,
-        body: str,
-        tags: list[str],
-        applies_to: list[str] | None = None,
-    ) -> Path:
-        convention = Convention(
-            name=name, body=body, tags=tags, applies_to=applies_to or []
-        )
+    def remember(self, *, name: str, body: str, tags: list[str]) -> Path:
+        convention = Convention(name=name, body=body, tags=tags)
         convention.file_path.write_text(convention.to_markdown())
         self._add_convention_to_index(convention)
 
         return convention.file_path
+
+    def free_name(self, name: str) -> str:
+        """Return ``name``, or ``name-2``, ``name-3``… if it is already taken."""
+        if not (self.conventions / f"{name}.md").exists():
+            return name
+        suffix = 2
+        while (self.conventions / f"{name}-{suffix}.md").exists():
+            suffix += 1
+        return f"{name}-{suffix}"
+
+    def reindex(self, name: str) -> bool:
+        """Refresh the index line for a convention edited on disk."""
+        convention = self.convention_for(name)
+        if convention is None:
+            return False
+        self._add_convention_to_index(convention)
+        return True
 
     def index_line_for(self, name: str) -> str | None:
         return next(
@@ -88,28 +96,21 @@ class Brain:
             line for line in lines if Convention.tags_from_index_line(line) & tags_set
         ]
 
-    def recall(self, query: str, tags: list[str] | None = None) -> list[str]:
-        lines = [
-            f"{path}:{line_number}:{line}"
-            for path in self.conventions.glob("*.md")
-            for line_number, line in enumerate(path.read_text().splitlines(), 1)
-            if query.lower() in line.lower()
-        ]
-
-        if not tags:
-            return lines
-
-        tags_set = set(tags)
-        allowed_names = {
-            convention.name
+    def recall(self, query: str, tags: list[str] | None = None) -> list[Convention]:
+        """Return every convention whose name, body, or tags match ``query``."""
+        needle = query.lower()
+        tags_set = set(tags or [])
+        return [
+            convention
             for convention in self._load_conventions()
-            if tags_set & set(convention.tags)
-        }
-        return [line for line in lines if any(name in line for name in allowed_names)]
+            if needle
+            in " ".join([convention.name, convention.body, *convention.tags]).lower()
+            and (not tags_set or tags_set & set(convention.tags))
+        ]
 
     def _load_conventions(self) -> list[Convention]:
         conventions = []
-        for path in self.conventions.glob("*.md"):
+        for path in sorted(self.conventions.glob("*.md")):
             try:
                 conventions.append(Convention.from_markdown(path.read_text()))
             except ValueError:

@@ -16,6 +16,8 @@ def clients() -> list[Client]:
             project_relative_path=Path("CLAUDE.md"),
             mcp_global_path=home / ".claude.json",
             mcp_project_relative_path=Path(".mcp.json"),
+            hook_global_path=home / ".claude" / "settings.json",
+            hook_project_relative_path=Path(".claude") / "settings.json",
         ),
         Client(
             key="cursor",

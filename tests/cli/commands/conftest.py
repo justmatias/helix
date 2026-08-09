@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 import typer
 
-from helix.core import Brain, Client, Scope, clients, install
+from helix.core import Brain, Client, Scope, Settings, clients, install
 
 
 @pytest.fixture
@@ -37,6 +37,12 @@ def working_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
 def claude() -> Client:
     """The Claude Code client definition."""
     return next(client for client in clients() if client.key == "claude")
+
+
+@pytest.fixture
+def _create_claude_directory() -> None:
+    """Make Claude Code look installed, so client detection finds exactly one."""
+    (Settings.HOME_DIRECTORY / ".claude").mkdir(parents=True, exist_ok=True)
 
 
 @pytest.fixture

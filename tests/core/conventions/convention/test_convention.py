@@ -13,7 +13,6 @@ def test_convention_to_markdown_contains_frontmatter(sample_convention: Conventi
 def test_convention_to_markdown_empty_lists(minimal_convention: Convention) -> None:
     markdown =minimal_convention.to_markdown()
     assert "tags:" in markdown
-    assert "applies_to:" in markdown
 
 
 def test_convention_roundtrip(sample_convention: Convention) -> None:
@@ -21,7 +20,25 @@ def test_convention_roundtrip(sample_convention: Convention) -> None:
     assert restored.name == sample_convention.name
     assert restored.body == sample_convention.body
     assert restored.tags == sample_convention.tags
-    assert restored.applies_to == sample_convention.applies_to
+
+
+def test_convention_from_markdown_ignores_legacy_applies_to() -> None:
+    restored = Convention.from_markdown(
+        "---\nname: legacy\ntags: [python]\napplies_to: [python]\n---\n\nBody.\n"
+    )
+    assert restored.name == "legacy"
+
+
+def test_convention_render_includes_name_tags_and_body(
+    sample_convention: Convention,
+) -> None:
+    rendered = sample_convention.render()
+    assert rendered.startswith("## pydantic-validation  [python, validation]")
+    assert "Prefer Pydantic v2 for boundary validation." in rendered
+
+
+def test_convention_render_without_tags(minimal_convention: Convention) -> None:
+    assert minimal_convention.render() == "## bare\n\nJust a body."
 
 
 def test_convention_from_markdown_invalid_no_delimiters() -> None:

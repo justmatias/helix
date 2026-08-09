@@ -57,6 +57,20 @@ def toml_mcp_global_path(toml_mcp_client: Client, tmp_path: Path) -> Path:
 
 
 @pytest.fixture
+def hook_client(claude_client: Client) -> Client:
+    """Claude Code — the only client with SessionStart hook settings."""
+    return claude_client
+
+
+@pytest.fixture
+def hook_global_path(hook_client: Client, tmp_path: Path) -> Path:
+    path = hook_client.hook_path_for(Scope.GLOBAL, tmp_path)
+    assert path is not None
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture
 def claude_md(tmp_path: Path) -> Path:
     return tmp_path / "CLAUDE.md"
 
