@@ -1,5 +1,6 @@
 # pylint: disable=duplicate-code
 from .clients import all_clients as clients
+from .errors import InvalidConfigError
 from .hooks import HOOK_COMMAND, HOOK_ENTRY, HOOK_EVENT, install_hook, uninstall_hook
 from .mcp_config import install_mcp_config, uninstall_mcp_config
 from .models import Client, McpConfigFormat, Scope, SnippetBlock
@@ -20,6 +21,7 @@ __all__ = [
     "SNIPPET",
     "START_MARKER",
     "Client",
+    "InvalidConfigError",
     "McpConfigFormat",
     "Scope",
     "SnippetBlock",

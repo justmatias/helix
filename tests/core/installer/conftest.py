@@ -48,8 +48,29 @@ def toml_mcp_client(tmp_path: Path) -> Client:
 
 
 @pytest.fixture
+def opencode_mcp_client(tmp_path: Path) -> Client:
+    return Client(
+        key="test-opencode",
+        name="Test Opencode",
+        global_path=tmp_path / ".testclient" / "AGENTS.md",
+        project_relative_path=Path("AGENTS.md"),
+        mcp_global_path=tmp_path / ".testclient" / "opencode.json",
+        mcp_project_relative_path=Path(".testclient") / "opencode.json",
+        mcp_format=McpConfigFormat.OPENCODE,
+    )
+
+
+@pytest.fixture
 def json_mcp_project_path(json_mcp_client: Client, tmp_path: Path) -> Path:
     path = json_mcp_client.mcp_path_for(Scope.PROJECT, tmp_path)
+    assert path is not None
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture
+def opencode_mcp_project_path(opencode_mcp_client: Client, tmp_path: Path) -> Path:
+    path = opencode_mcp_client.mcp_path_for(Scope.PROJECT, tmp_path)
     assert path is not None
     path.parent.mkdir(parents=True, exist_ok=True)
     return path

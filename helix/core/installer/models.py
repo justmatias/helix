@@ -12,6 +12,7 @@ class Scope(StrEnum):
 class McpConfigFormat(StrEnum):
     JSON = "json"
     TOML = "toml"
+    OPENCODE = "opencode"
 
 
 class Client(BaseModel):

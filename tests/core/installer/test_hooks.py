@@ -2,10 +2,13 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
+import pytest
+
 from helix.core import (
     HOOK_COMMAND,
     HOOK_EVENT,
     Client,
+    InvalidConfigError,
     Scope,
     install_hook,
     uninstall_hook,
@@ -122,3 +125,19 @@ def test_uninstall_hook_returns_false_without_file(
     hook_client: Client, tmp_path: Path
 ) -> None:
     assert not uninstall_hook(hook_client, Scope.PROJECT, tmp_path)
+
+
+def test_install_hook_treats_empty_file_as_empty_settings(
+    hook_client: Client, hook_global_path: Path
+) -> None:
+    hook_global_path.write_text("")
+    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    assert _commands(hook_global_path) == [HOOK_COMMAND]
+
+
+def test_uninstall_hook_raises_on_invalid_existing_settings(
+    hook_client: Client, hook_global_path: Path
+) -> None:
+    hook_global_path.write_text("{not valid json")
+    with pytest.raises(InvalidConfigError, match="not valid JSON"):
+        uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
