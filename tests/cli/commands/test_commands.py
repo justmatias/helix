@@ -276,7 +276,7 @@ def test_cmd_uninstall_reports_when_nothing_removed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     set_answers("1")
-    monkeypatch.setattr("helix.cli.install.uninstall", lambda *a, **k: False)
+    monkeypatch.setattr("helix.cli.commands.uninstall", lambda *a, **k: False)
     with pytest.raises(typer.Exit) as exc_info:
         cmd_uninstall()
     assert exc_info.value.exit_code == 1
