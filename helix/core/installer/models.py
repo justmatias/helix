@@ -57,7 +57,11 @@ class Client(BaseModel):
 
     @property
     def installation_directory(self) -> Path:
-        return self.detect_path if self.detect_path is not None else self.global_path.parent
+        return (
+            self.detect_path
+            if self.detect_path is not None
+            else self.global_path.parent
+        )
 
     def path_for(self, scope: Scope, project_root: Path) -> Path:
         if scope == Scope.GLOBAL:
@@ -74,7 +78,7 @@ class Client(BaseModel):
     def hook_path_for(self, scope: Scope, project_root: Path) -> Path | None:
         if scope == Scope.GLOBAL:
             return self.hook_global_path
-        if self.hook_project_relative_path is None:
+        if not self.hook_project_relative_path:
             return None
         return project_root / self.hook_project_relative_path
 
