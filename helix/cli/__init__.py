@@ -2,12 +2,11 @@ from .app import app
 from .commands import (
     cmd_edit,
     cmd_forget,
-    cmd_install,
     cmd_list,
     cmd_recall,
     cmd_remember,
-    cmd_uninstall,
 )
+from .install import cmd_install, cmd_uninstall
 
 __all__ = [
     "app",

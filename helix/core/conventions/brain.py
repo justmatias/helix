@@ -40,6 +40,7 @@ class Brain:
 
     def free_name(self, name: str) -> str:
         """Return ``name``, or ``name-2``, ``name-3``… if it is already taken."""
+        name = name or "convention"
         if not (self.conventions / f"{name}.md").exists():
             return name
         suffix = 2
@@ -103,10 +104,15 @@ class Brain:
         return [
             convention
             for convention in self._load_conventions()
-            if needle
-            in " ".join([convention.name, convention.body, *convention.tags]).lower()
-            and (not tags_set or tags_set & set(convention.tags))
+            if self._matches(convention, needle, tags_set)
         ]
+
+    @staticmethod
+    def _matches(convention: Convention, needle: str, tags_set: set[str]) -> bool:
+        haystack = " ".join([convention.name, convention.body, *convention.tags])
+        return needle in haystack.lower() and (
+            not tags_set or tags_set & set(convention.tags)
+        )
 
     def _load_conventions(self) -> list[Convention]:
         conventions = []
