@@ -78,14 +78,14 @@ def test_cmd_list_empty(capsys: pytest.CaptureFixture[str]) -> None:
     assert "No conventions found." in captured.out
 
 
-@pytest.mark.usefixtures("_remember_conv_a")
+@pytest.mark.usefixtures("_remember_convention")
 def test_cmd_list_shows_entries(capsys: pytest.CaptureFixture[str]) -> None:
     cmd_list(tags=None)
     captured = capsys.readouterr()
     assert "conv-a" in captured.out
 
 
-@pytest.mark.usefixtures("_remember_conv_a")
+@pytest.mark.usefixtures("_remember_convention")
 def test_cmd_list_filters_by_tags(capsys: pytest.CaptureFixture[str]) -> None:
     Brain().remember(name="conv-b", body="Body B.", tags=["typescript"])
     cmd_list(tags="python")
@@ -117,7 +117,7 @@ def test_cmd_recall_prints_full_body(capsys: pytest.CaptureFixture[str]) -> None
     assert "Second line." in captured.out
 
 
-@pytest.mark.usefixtures("_remember_conv_a")
+@pytest.mark.usefixtures("_remember_convention")
 def test_cmd_list_prints_header(capsys: pytest.CaptureFixture[str]) -> None:
     cmd_list(tags=None)
     assert "# Helix Convention Index" in capsys.readouterr().out

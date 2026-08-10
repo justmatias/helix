@@ -27,7 +27,7 @@ def _initialize_brain(brain: Brain) -> None:
 
 
 @pytest.fixture
-def _remember_conv_a() -> None:
+def _remember_convention() -> None:
     """Seed a single ``conv-a`` convention tagged ``python``."""
     Brain().remember(name="conv-a", body="Body A.", tags=["python"])
 
