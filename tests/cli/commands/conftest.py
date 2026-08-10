@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 import typer
 
-from helix.core import Brain, Client, Scope, clients, install
+from helix.core import Brain, Client, Scope, Settings, clients, install
 
 
 @pytest.fixture
@@ -27,9 +27,20 @@ def _initialize_brain(brain: Brain) -> None:
 
 
 @pytest.fixture
-def working_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
-    """The directory CLI commands operate in (project root)."""
+def _remember_convention() -> None:
+    """Seed a single ``conv-a`` convention tagged ``python``."""
+    Brain().remember(name="conv-a", body="Body A.", tags=["python"])
+
+
+@pytest.fixture
+def _chdir_to_tmp_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Change into ``tmp_path``, so CLI commands operate on a scratch project root."""
     monkeypatch.chdir(tmp_path)
+
+
+@pytest.fixture
+def working_dir(_chdir_to_tmp_path: None, tmp_path: Path) -> Path:
+    """The directory CLI commands operate in (project root)."""
     return tmp_path
 
 
@@ -37,6 +48,12 @@ def working_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
 def claude() -> Client:
     """The Claude Code client definition."""
     return next(client for client in clients() if client.key == "claude")
+
+
+@pytest.fixture
+def _create_claude_directory() -> None:
+    """Make Claude Code look installed, so client detection finds exactly one."""
+    (Settings.HOME_DIRECTORY / ".claude").mkdir(parents=True, exist_ok=True)
 
 
 @pytest.fixture

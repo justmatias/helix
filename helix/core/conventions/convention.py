@@ -14,7 +14,6 @@ class Convention(BaseModel):
     name: str
     body: str
     tags: list[str] = Field(default_factory=list)
-    applies_to: list[str] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="ignore")
 
@@ -23,12 +22,7 @@ class Convention(BaseModel):
         return Settings.HELIX_CONVENTIONS / f"{self.name}.md"
 
     def to_markdown(self) -> str:
-        post = frontmatter.Post(
-            self.body,
-            name=self.name,
-            tags=self.tags,
-            applies_to=self.applies_to,
-        )
+        post = frontmatter.Post(self.body, name=self.name, tags=self.tags)
         return str(frontmatter.dumps(post)) + "\n"
 
     @classmethod
@@ -44,6 +38,11 @@ class Convention(BaseModel):
             first_line = first_line[:77] + "..."
         tags_string = ",".join(self.tags)
         return f"- [{self.name}](conventions/{self.name}.md) [{tags_string}] — {first_line}"
+
+    def render(self) -> str:
+        """Full convention text, for `recall` output."""
+        tags_string = f"  [{', '.join(self.tags)}]" if self.tags else ""
+        return f"## {self.name}{tags_string}\n\n{self.body.strip()}"
 
     @staticmethod
     def tags_from_index_line(line: str) -> set[str]:

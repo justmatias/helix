@@ -1,5 +1,5 @@
 from helix.core import Brain
-from helix.mcp.tools.recall import recall
+from helix.mcp import recall
 
 
 def test_recall_no_match() -> None:
@@ -14,7 +14,9 @@ def test_recall_finds_match(brain: Brain) -> None:
 
 def test_recall_filters_by_tag(brain: Brain) -> None:
     brain.remember(name="py-conv", body="Use type hints.", tags=["python"])
-    brain.remember(name="ts-conv", body="Use TypeScript strict mode.", tags=["typescript"])
+    brain.remember(
+        name="ts-conv", body="Use TypeScript strict mode.", tags=["typescript"]
+    )
     results = recall(query="type", tags=["python"])
     assert any("py-conv" in r for r in results)
     assert not any("ts-conv" in r for r in results)
@@ -22,7 +24,9 @@ def test_recall_filters_by_tag(brain: Brain) -> None:
 
 def test_recall_filters_by_multiple_tags(brain: Brain) -> None:
     brain.remember(name="py-conv", body="Use type hints.", tags=["python"])
-    brain.remember(name="ts-conv", body="Use TypeScript strict mode.", tags=["typescript"])
+    brain.remember(
+        name="ts-conv", body="Use TypeScript strict mode.", tags=["typescript"]
+    )
     brain.remember(name="go-conv", body="Use interfaces.", tags=["go"])
     results = recall(query="use", tags=["python", "typescript"])
     assert any("py-conv" in r for r in results)
