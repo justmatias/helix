@@ -146,7 +146,10 @@ def cmd_install(
         typer.echo(f"Wrote helix block to {path} ({selected_client.name})")
 
         mcp_path = warn_on_invalid_config(
-            install_mcp_config, selected_client, scope, project_root
+            install_mcp_config,
+            client=selected_client,
+            scope=scope,
+            project_root=project_root,
         )
         if mcp_path is not None:
             typer.echo(
@@ -154,7 +157,7 @@ def cmd_install(
             )
 
         hook_path = warn_on_invalid_config(
-            install_hook, selected_client, scope, project_root
+            install_hook, client=selected_client, scope=scope, project_root=project_root
         )
         if hook_path is not None:
             typer.echo(
@@ -207,12 +210,18 @@ def cmd_uninstall(
             typer.echo(f"Nothing to remove from {block.path}", err=True)
 
         if warn_on_invalid_config(
-            uninstall_mcp_config, block.client, block.scope, project_root
+            uninstall_mcp_config,
+            client=block.client,
+            scope=block.scope,
+            project_root=project_root,
         ):
             typer.echo(f"Removed MCP server config for {block.client.name}")
 
         if warn_on_invalid_config(
-            uninstall_hook, block.client, block.scope, project_root
+            uninstall_hook,
+            client=block.client,
+            scope=block.scope,
+            project_root=project_root,
         ):
             typer.echo(f"Removed SessionStart hook for {block.client.name}")
 

@@ -15,10 +15,10 @@ def resolve_text_argument(value: str | None) -> str:
     return value.strip()
 
 
-def warn_on_invalid_config[T](func: Callable[..., T], *args: object) -> T | None:
-    """Call ``func(*args)``, echoing and swallowing an ``InvalidConfigError``."""
+def warn_on_invalid_config[T](func: Callable[..., T], **kwargs: object) -> T | None:
+    """Call ``func(**kwargs)``, echoing and swallowing an ``InvalidConfigError``."""
     try:
-        return func(*args)
+        return func(**kwargs)
     except InvalidConfigError as exc:
         typer.echo(str(exc), err=True)
         return None
