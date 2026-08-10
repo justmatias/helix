@@ -1,3 +1,5 @@
+import json
+import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
@@ -138,3 +140,36 @@ def _create_claude_global_directory(tmp_path: Path) -> None:
 @pytest.fixture
 def _create_cursor_global_directory(tmp_path: Path) -> None:
     (tmp_path / ".cursor").mkdir()
+
+
+@pytest.fixture
+def _claude_cli_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make ``shutil.which('claude')`` resolve, as if the CLI were on PATH."""
+    monkeypatch.setattr(
+        "helix.core.installer.mcp_config.shutil.which", lambda _name: "/usr/bin/claude"
+    )
+
+
+@pytest.fixture
+def _claude_cli_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make ``shutil.which('claude')`` resolve to nothing."""
+    monkeypatch.setattr("helix.core.installer.mcp_config.shutil.which", lambda _name: None)
+
+
+@pytest.fixture
+def claude_cli_calls(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
+    """Record every argv the installer passes to ``subprocess.run`` for the claude CLI."""
+    calls: list[list[str]] = []
+
+    def _run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr("helix.core.installer.mcp_config.subprocess.run", _run)
+    return calls
+
+
+@pytest.fixture
+def _write_foreign_settings(hook_global_path: Path) -> None:
+    """Seed ``hook_global_path`` with a pre-existing, unrelated settings key."""
+    hook_global_path.write_text(json.dumps({"theme": "dark"}))

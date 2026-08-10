@@ -31,10 +31,10 @@ def test_install_hook_creates_settings_file(
     assert _commands(hook_global_path) == [HOOK_COMMAND]
 
 
+@pytest.mark.usefixtures("_write_foreign_settings")
 def test_install_hook_preserves_existing_settings(
     install_hook_globally: Callable[[], Path | None], hook_global_path: Path
 ) -> None:
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
     install_hook_globally()
     data = json.loads(hook_global_path.read_text())
     assert data["theme"] == "dark"
@@ -87,12 +87,12 @@ def test_uninstall_hook_deletes_file_when_empty(
     assert not hook_global_path.exists()
 
 
+@pytest.mark.usefixtures("_write_foreign_settings")
 def test_uninstall_hook_keeps_other_settings(
     install_hook_globally: Callable[[], Path | None],
     uninstall_hook_globally: Callable[[], bool],
     hook_global_path: Path,
 ) -> None:
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
     install_hook_globally()
     uninstall_hook_globally()
     data = json.loads(hook_global_path.read_text())
@@ -114,10 +114,10 @@ def test_uninstall_hook_keeps_foreign_entries(
     assert _commands(hook_global_path) == ["echo hi"]
 
 
+@pytest.mark.usefixtures("_write_foreign_settings")
 def test_uninstall_hook_returns_false_when_absent(
-    uninstall_hook_globally: Callable[[], bool], hook_global_path: Path
+    uninstall_hook_globally: Callable[[], bool],
 ) -> None:
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
     assert not uninstall_hook_globally()
 
 

@@ -1,6 +1,5 @@
 import json
 import subprocess
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -500,83 +499,49 @@ def test_install_hook_raises_on_invalid_existing_settings(
 # instead of rewriting that file directly.
 
 
-def _recording_run(
-    calls: list[list[str]],
-) -> Callable[..., subprocess.CompletedProcess]:
-    def _run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
-        calls.append(cmd)
-        return subprocess.CompletedProcess(cmd, 0)
-
-    return _run
-
-
+@pytest.mark.usefixtures("_claude_cli_available")
 def test_install_mcp_config_claude_global_uses_cli_when_available(
-    tmp_path: Path, claude_client: Client, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, claude_client: Client, claude_cli_calls: list[list[str]]
 ) -> None:
-    calls: list[list[str]] = []
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.shutil.which", lambda _name: "/usr/bin/claude"
-    )
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.subprocess.run", _recording_run(calls)
-    )
-
     result = install_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
 
     assert result == claude_client.mcp_global_path
-    assert calls == [CLAUDE_ADD_USER_SCOPE]
+    assert claude_cli_calls == [CLAUDE_ADD_USER_SCOPE]
     assert claude_client.mcp_global_path is not None
     assert not claude_client.mcp_global_path.exists()
 
 
+@pytest.mark.usefixtures("_claude_cli_unavailable")
 def test_install_mcp_config_claude_global_falls_back_without_cli(
-    tmp_path: Path, claude_client: Client, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, claude_client: Client
 ) -> None:
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.shutil.which", lambda _name: None
-    )
     path = install_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
     assert path is not None and path.exists()
     data = json.loads(path.read_text())
     assert data["mcpServers"]["helix"] == {"command": "helix", "args": ["serve"]}
 
 
+@pytest.mark.usefixtures("_claude_cli_available")
 def test_install_mcp_config_claude_project_scope_never_uses_cli(
-    tmp_path: Path, claude_client: Client, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, claude_client: Client, claude_cli_calls: list[list[str]]
 ) -> None:
-    calls: list[list[str]] = []
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.shutil.which", lambda _name: "/usr/bin/claude"
-    )
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.subprocess.run", _recording_run(calls)
-    )
     path = install_mcp_config(claude_client, Scope.PROJECT, tmp_path)
-    assert not calls
+    assert not claude_cli_calls
     assert path is not None and path.exists()
 
 
+@pytest.mark.usefixtures("_claude_cli_available")
 def test_uninstall_mcp_config_claude_global_uses_cli_when_available(
-    tmp_path: Path, claude_client: Client, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, claude_client: Client, claude_cli_calls: list[list[str]]
 ) -> None:
-    calls: list[list[str]] = []
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.shutil.which", lambda _name: "/usr/bin/claude"
-    )
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.subprocess.run", _recording_run(calls)
-    )
-
     assert uninstall_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
-    assert calls == [CLAUDE_REMOVE_USER_SCOPE]
+    assert claude_cli_calls == [CLAUDE_REMOVE_USER_SCOPE]
 
 
+@pytest.mark.usefixtures("_claude_cli_available")
 def test_uninstall_mcp_config_claude_global_reports_cli_failure(
     tmp_path: Path, claude_client: Client, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(
-        "helix.core.installer.mcp_config.shutil.which", lambda _name: "/usr/bin/claude"
-    )
     monkeypatch.setattr(
         "helix.core.installer.mcp_config.subprocess.run",
         lambda cmd, **_kwargs: subprocess.CompletedProcess(cmd, 1),
