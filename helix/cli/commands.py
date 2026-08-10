@@ -17,11 +17,23 @@ from helix.core import (
     uninstall_mcp_config,
 )
 from helix.mcp import run_mcp_server
-from helix.utils import parse_csv, resolve_text_argument, slugify
+from helix.utils import (
+    parse_csv,
+    resolve_text_argument,
+    slugify,
+    warn_on_invalid_config,
+)
 
 from .prompts import pick, pick_many, select_clients
 
 INDEX_HEADER = "# Helix Convention Index"
+
+# Installer functions raise InvalidConfigError on a malformed client config file;
+# the CLI is the boundary that reports it and moves on instead of crashing.
+safe_install_mcp_config = warn_on_invalid_config(install_mcp_config)
+safe_uninstall_mcp_config = warn_on_invalid_config(uninstall_mcp_config)
+safe_install_hook = warn_on_invalid_config(install_hook)
+safe_uninstall_hook = warn_on_invalid_config(uninstall_hook)
 
 
 def cmd_remember(
@@ -140,13 +152,13 @@ def cmd_install(
         written.add(path)
         typer.echo(f"Wrote helix block to {path} ({selected_client.name})")
 
-        mcp_path = install_mcp_config(selected_client, scope, project_root)
+        mcp_path = safe_install_mcp_config(selected_client, scope, project_root)
         if mcp_path is not None:
             typer.echo(
                 f"Wrote MCP server config to {mcp_path} ({selected_client.name})"
             )
 
-        hook_path = install_hook(selected_client, scope, project_root)
+        hook_path = safe_install_hook(selected_client, scope, project_root)
         if hook_path is not None:
             typer.echo(
                 f"Wrote SessionStart hook to {hook_path} ({selected_client.name})"
@@ -197,10 +209,10 @@ def cmd_uninstall(
         else:
             typer.echo(f"Nothing to remove from {block.path}", err=True)
 
-        if uninstall_mcp_config(block.client, block.scope, project_root):
+        if safe_uninstall_mcp_config(block.client, block.scope, project_root):
             typer.echo(f"Removed MCP server config for {block.client.name}")
 
-        if uninstall_hook(block.client, block.scope, project_root):
+        if safe_uninstall_hook(block.client, block.scope, project_root):
             typer.echo(f"Removed SessionStart hook for {block.client.name}")
 
     if not removed_any:

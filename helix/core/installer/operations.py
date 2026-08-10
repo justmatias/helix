@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from .clients import all_clients
-from .models import Client, Scope, SnippetBlock
+from .hooks import HOOK_COMMAND
+from .models import Client, McpConfigFormat, Scope, SnippetBlock
 from .snippet import BLOCK_PATTERN, END_MARKER, SNIPPET, START_MARKER
 
 
@@ -9,19 +10,41 @@ def detect_installed_clients() -> list[Client]:
     return [client for client in all_clients() if client.installation_directory.exists()]
 
 
+def _contains(path: Path | None, needle: str) -> bool:
+    return path is not None and path.exists() and needle in path.read_text()
+
+
 def detect_snippet_blocks(project_root: Path) -> list[SnippetBlock]:
+    """Find every client+scope with a Helix snippet, MCP entry, or hook.
+
+    A block is reported even if only the MCP config or hook survives (e.g. the
+    CLAUDE.md snippet was deleted by hand) — ``uninstall``/``uninstall_mcp_config``/
+    ``uninstall_hook`` are all keyed by client+scope, not by this block's path,
+    so nothing is left orphaned.
+    """
     blocks: list[SnippetBlock] = []
     for client in all_clients():
         for scope in Scope:
-            path = client.path_for(scope, project_root)
-            if not path.exists():
+            snippet_path = client.path_for(scope, project_root)
+            mcp_needle = (
+                "[mcp_servers.helix]" if client.mcp_format == McpConfigFormat.TOML else '"helix"'
+            )
+            has_snippet = _contains(snippet_path, START_MARKER)
+            has_mcp = _contains(client.mcp_path_for(scope, project_root), mcp_needle)
+            has_hook = _contains(client.hook_path_for(scope, project_root), HOOK_COMMAND)
+            if not (has_snippet or has_mcp or has_hook):
                 continue
 
-            if START_MARKER not in path.read_text():
-                continue
+            display_path: Path | None = snippet_path
+            if not has_snippet:
+                display_path = (
+                    client.mcp_path_for(scope, project_root)
+                    if has_mcp
+                    else client.hook_path_for(scope, project_root)
+                )
+            assert display_path is not None
 
-            config_block = SnippetBlock(client=client, scope=scope, path=path)
-            blocks.append(config_block)
+            blocks.append(SnippetBlock(client=client, scope=scope, path=display_path))
     return blocks
 
 

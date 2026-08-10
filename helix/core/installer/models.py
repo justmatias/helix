@@ -12,6 +12,9 @@ class Scope(StrEnum):
 class McpConfigFormat(StrEnum):
     JSON = "json"
     TOML = "toml"
+    # Opencode's schema uses a `mcp.<name>` object with a `local`/`command`-array
+    # shape, not the generic `mcpServers` object other JSON-based clients accept.
+    OPENCODE = "opencode"
 
 
 class Client(BaseModel):

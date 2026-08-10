@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -8,15 +9,24 @@ from helix.core import (
     SNIPPET,
     START_MARKER,
     Client,
+    InvalidConfigError,
     McpConfigFormat,
     Scope,
     clients,
     detect_installed_clients,
     detect_snippet_blocks,
     install,
+    install_hook,
     install_mcp_config,
     uninstall,
     uninstall_mcp_config,
+)
+from helix.core.installer.hooks import HOOK_COMMAND
+from helix.core.installer.mcp_config import (
+    CLAUDE_ADD_USER_SCOPE,
+    CLAUDE_REMOVE_USER_SCOPE,
+    TOML_END,
+    TOML_START,
 )
 
 
@@ -318,3 +328,266 @@ def test_codex_client_has_toml_mcp_config() -> None:
     assert codex.mcp_global_path.name == "config.toml"
     assert codex.mcp_project_relative_path is None
     assert codex.mcp_format == McpConfigFormat.TOML
+
+
+def test_opencode_client_has_opencode_mcp_format() -> None:
+    opencode = next(c for c in clients() if c.key == "opencode")
+    assert opencode.mcp_format == McpConfigFormat.OPENCODE
+
+
+# --- opencode MCP format: `mcp.<name>` with a `local`/`command`-array shape,
+# not the generic `mcpServers` object opencode's schema doesn't recognize.
+
+
+def test_install_mcp_config_opencode_creates_file(
+    tmp_path: Path, opencode_mcp_client: Client
+) -> None:
+    path = install_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    assert path is not None and path.exists()
+    data = json.loads(path.read_text())
+    assert data["mcp"]["helix"] == {
+        "type": "local",
+        "command": ["helix", "serve"],
+        "enabled": True,
+    }
+
+
+def test_install_mcp_config_opencode_merges_into_existing(
+    tmp_path: Path, opencode_mcp_client: Client, opencode_mcp_project_path: Path
+) -> None:
+    opencode_mcp_project_path.write_text(
+        json.dumps({"mcp": {"other": {"type": "local", "command": ["other"]}}})
+    )
+    install_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    data = json.loads(opencode_mcp_project_path.read_text())
+    assert "other" in data["mcp"]
+    assert data["mcp"]["helix"]["command"] == ["helix", "serve"]
+
+
+def test_install_mcp_config_opencode_is_idempotent(
+    tmp_path: Path, opencode_mcp_client: Client, opencode_mcp_project_path: Path
+) -> None:
+    install_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    install_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    data = json.loads(opencode_mcp_project_path.read_text())
+    assert list(data["mcp"].keys()).count("helix") == 1
+
+
+def test_uninstall_mcp_config_opencode_removes_entry(
+    tmp_path: Path, opencode_mcp_client: Client, opencode_mcp_project_path: Path
+) -> None:
+    install_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    assert uninstall_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    assert not opencode_mcp_project_path.exists()
+
+
+def test_uninstall_mcp_config_opencode_keeps_other_servers(
+    tmp_path: Path, opencode_mcp_client: Client, opencode_mcp_project_path: Path
+) -> None:
+    opencode_mcp_project_path.write_text(
+        json.dumps(
+            {
+                "mcp": {
+                    "other": {"type": "local", "command": ["other"]},
+                    "helix": {
+                        "type": "local",
+                        "command": ["helix", "serve"],
+                        "enabled": True,
+                    },
+                }
+            }
+        )
+    )
+    assert uninstall_mcp_config(opencode_mcp_client, Scope.PROJECT, tmp_path)
+    data = json.loads(opencode_mcp_project_path.read_text())
+    assert "other" in data["mcp"]
+    assert "helix" not in data["mcp"]
+
+
+# --- TOML block is now marker-wrapped, so uninstall survives hand-edits
+# (like an added `env` line) inside the block, unlike an exact-string match.
+
+
+def test_install_mcp_config_toml_wraps_block_in_markers(
+    tmp_path: Path, toml_mcp_client: Client
+) -> None:
+    path = install_mcp_config(toml_mcp_client, Scope.GLOBAL, tmp_path)
+    assert path is not None
+    text = path.read_text()
+    assert TOML_START in text
+    assert TOML_END in text
+
+
+def test_uninstall_mcp_config_toml_removes_marked_block_despite_manual_edit(
+    tmp_path: Path, toml_mcp_client: Client, toml_mcp_global_path: Path
+) -> None:
+    toml_mcp_global_path.write_text(
+        '[other_section]\nkey = "value"\n\n'
+        f"{TOML_START}\n"
+        '[mcp_servers.helix]\ncommand = "helix"\nargs = ["serve"]\n'
+        'env = { FOO = "bar" }\n'
+        f"{TOML_END}\n"
+    )
+    assert uninstall_mcp_config(toml_mcp_client, Scope.GLOBAL, tmp_path)
+    text = toml_mcp_global_path.read_text()
+    assert "[other_section]" in text
+    assert "[mcp_servers.helix]" not in text
+    assert "FOO" not in text
+
+
+def test_install_mcp_config_toml_does_not_duplicate_legacy_unmarked_header(
+    tmp_path: Path, toml_mcp_client: Client, toml_mcp_global_path: Path
+) -> None:
+    toml_mcp_global_path.write_text(
+        '[mcp_servers.helix]\ncommand = "helix"\nargs = ["serve"]\n'
+    )
+    install_mcp_config(toml_mcp_client, Scope.GLOBAL, tmp_path)
+    text = toml_mcp_global_path.read_text()
+    assert text.count("[mcp_servers.helix]") == 1
+    assert TOML_START not in text
+
+
+def test_uninstall_mcp_config_returns_false_for_missing_scope(
+    tmp_path: Path, json_mcp_client: Client
+) -> None:
+    no_project_client = json_mcp_client.model_copy(
+        update={"mcp_project_relative_path": None}
+    )
+    assert not uninstall_mcp_config(no_project_client, Scope.PROJECT, tmp_path)
+
+
+def test_reinstall_toml_replaces_marked_block_in_place(
+    tmp_path: Path, toml_mcp_client: Client, toml_mcp_global_path: Path
+) -> None:
+    install_mcp_config(toml_mcp_client, Scope.GLOBAL, tmp_path)
+    install_mcp_config(toml_mcp_client, Scope.GLOBAL, tmp_path)
+    text = toml_mcp_global_path.read_text()
+    assert text.count(TOML_START) == 1
+    assert text.count("[mcp_servers.helix]") == 1
+
+
+# --- Malformed existing config files raise instead of crashing with a
+# bare traceback, so the CLI can report which client/file needs attention.
+
+
+def test_install_mcp_config_json_raises_on_invalid_existing_file(
+    tmp_path: Path, json_mcp_client: Client, json_mcp_project_path: Path
+) -> None:
+    json_mcp_project_path.write_text("{not valid json")
+    with pytest.raises(InvalidConfigError, match="not valid JSON"):
+        install_mcp_config(json_mcp_client, Scope.PROJECT, tmp_path)
+
+
+def test_uninstall_mcp_config_json_raises_on_invalid_existing_file(
+    tmp_path: Path, json_mcp_client: Client, json_mcp_project_path: Path
+) -> None:
+    json_mcp_project_path.write_text("{not valid json")
+    with pytest.raises(InvalidConfigError, match="not valid JSON"):
+        uninstall_mcp_config(json_mcp_client, Scope.PROJECT, tmp_path)
+
+
+def test_install_hook_raises_on_invalid_existing_settings(
+    tmp_path: Path, hook_client: Client, hook_global_path: Path
+) -> None:
+    hook_global_path.write_text("{not valid json")
+    with pytest.raises(InvalidConfigError, match="not valid JSON"):
+        install_hook(hook_client, Scope.GLOBAL, tmp_path)
+
+
+# --- Claude Code's global MCP scope lives in ~/.claude.json, which also
+# holds live session state. When the `claude` CLI is on PATH, delegate to it
+# instead of rewriting that file directly.
+
+
+@pytest.mark.usefixtures("_claude_cli_available")
+def test_install_mcp_config_claude_global_uses_cli_when_available(
+    tmp_path: Path, claude_client: Client, claude_cli_calls: list[list[str]]
+) -> None:
+    result = install_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
+
+    assert result == claude_client.mcp_global_path
+    assert claude_cli_calls == [CLAUDE_ADD_USER_SCOPE]
+    assert claude_client.mcp_global_path is not None
+    assert not claude_client.mcp_global_path.exists()
+
+
+@pytest.mark.usefixtures("_claude_cli_unavailable")
+def test_install_mcp_config_claude_global_falls_back_without_cli(
+    tmp_path: Path, claude_client: Client
+) -> None:
+    path = install_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
+    assert path is not None and path.exists()
+    data = json.loads(path.read_text())
+    assert data["mcpServers"]["helix"] == {"command": "helix", "args": ["serve"]}
+
+
+@pytest.mark.usefixtures("_claude_cli_available")
+def test_install_mcp_config_claude_project_scope_never_uses_cli(
+    tmp_path: Path, claude_client: Client, claude_cli_calls: list[list[str]]
+) -> None:
+    path = install_mcp_config(claude_client, Scope.PROJECT, tmp_path)
+    assert not claude_cli_calls
+    assert path is not None and path.exists()
+
+
+@pytest.mark.usefixtures("_claude_cli_available")
+def test_uninstall_mcp_config_claude_global_uses_cli_when_available(
+    tmp_path: Path, claude_client: Client, claude_cli_calls: list[list[str]]
+) -> None:
+    assert uninstall_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
+    assert claude_cli_calls == [CLAUDE_REMOVE_USER_SCOPE]
+
+
+@pytest.mark.usefixtures("_claude_cli_available")
+def test_uninstall_mcp_config_claude_global_reports_cli_failure(
+    tmp_path: Path, claude_client: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "helix.core.installer.mcp_config.subprocess.run",
+        lambda cmd, **_kwargs: subprocess.CompletedProcess(cmd, 1),
+    )
+    assert not uninstall_mcp_config(claude_client, Scope.GLOBAL, tmp_path)
+
+
+# --- Detection now covers orphaned MCP/hook entries even without a
+# surviving markdown snippet, so uninstall doesn't leak them.
+
+
+def test_detect_snippet_blocks_finds_mcp_only_leftover(
+    tmp_path: Path,
+    json_mcp_client: Client,
+    json_mcp_project_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    json_mcp_project_path.write_text(
+        json.dumps({"mcpServers": {"helix": {"command": "helix", "args": ["serve"]}}})
+    )
+    monkeypatch.setattr(
+        "helix.core.installer.operations.all_clients", lambda: [json_mcp_client]
+    )
+
+    blocks = [
+        block for block in detect_snippet_blocks(tmp_path) if block.scope == Scope.PROJECT
+    ]
+    assert blocks
+    assert blocks[0].path == json_mcp_project_path
+
+
+def test_detect_snippet_blocks_finds_hook_only_leftover(
+    tmp_path: Path,
+    hook_client: Client,
+    hook_global_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    hook_global_path.write_text(
+        json.dumps({"hooks": {"SessionStart": [{"hooks": [{"command": HOOK_COMMAND}]}]}})
+    )
+    monkeypatch.setattr(
+        "helix.core.installer.operations.all_clients", lambda: [hook_client]
+    )
+
+    blocks = [
+        block for block in detect_snippet_blocks(tmp_path) if block.scope == Scope.GLOBAL
+    ]
+    assert blocks
+    assert blocks[0].path == hook_global_path

@@ -2,10 +2,13 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
+import pytest
+
 from helix.core import (
     HOOK_COMMAND,
     HOOK_EVENT,
     Client,
+    InvalidConfigError,
     Scope,
     install_hook,
     uninstall_hook,
@@ -28,10 +31,10 @@ def test_install_hook_creates_settings_file(
     assert _commands(hook_global_path) == [HOOK_COMMAND]
 
 
+@pytest.mark.usefixtures("_write_foreign_settings")
 def test_install_hook_preserves_existing_settings(
     install_hook_globally: Callable[[], Path | None], hook_global_path: Path
 ) -> None:
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
     install_hook_globally()
     data = json.loads(hook_global_path.read_text())
     assert data["theme"] == "dark"
@@ -84,12 +87,12 @@ def test_uninstall_hook_deletes_file_when_empty(
     assert not hook_global_path.exists()
 
 
+@pytest.mark.usefixtures("_write_foreign_settings")
 def test_uninstall_hook_keeps_other_settings(
     install_hook_globally: Callable[[], Path | None],
     uninstall_hook_globally: Callable[[], bool],
     hook_global_path: Path,
 ) -> None:
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
     install_hook_globally()
     uninstall_hook_globally()
     data = json.loads(hook_global_path.read_text())
@@ -111,10 +114,10 @@ def test_uninstall_hook_keeps_foreign_entries(
     assert _commands(hook_global_path) == ["echo hi"]
 
 
+@pytest.mark.usefixtures("_write_foreign_settings")
 def test_uninstall_hook_returns_false_when_absent(
-    uninstall_hook_globally: Callable[[], bool], hook_global_path: Path
+    uninstall_hook_globally: Callable[[], bool],
 ) -> None:
-    hook_global_path.write_text(json.dumps({"theme": "dark"}))
     assert not uninstall_hook_globally()
 
 
@@ -122,3 +125,19 @@ def test_uninstall_hook_returns_false_without_file(
     hook_client: Client, tmp_path: Path
 ) -> None:
     assert not uninstall_hook(hook_client, Scope.PROJECT, tmp_path)
+
+
+def test_install_hook_treats_empty_file_as_empty_settings(
+    hook_client: Client, hook_global_path: Path
+) -> None:
+    hook_global_path.write_text("")
+    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    assert _commands(hook_global_path) == [HOOK_COMMAND]
+
+
+def test_uninstall_hook_raises_on_invalid_existing_settings(
+    hook_client: Client, hook_global_path: Path
+) -> None:
+    hook_global_path.write_text("{not valid json")
+    with pytest.raises(InvalidConfigError, match="not valid JSON"):
+        uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())

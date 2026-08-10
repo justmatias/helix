@@ -248,6 +248,31 @@ def test_cmd_uninstall_yes_reverts_everything_install_wrote(
     assert not (working_dir / ".claude" / "settings.json").exists()
 
 
+def test_cmd_install_reports_invalid_mcp_config_and_continues(
+    capsys: pytest.CaptureFixture[str], working_dir: Path
+) -> None:
+    (working_dir / ".mcp.json").write_text("{not valid json")
+    cmd_install(client=["claude"], scope=Scope.PROJECT, yes=True)
+    captured = capsys.readouterr()
+    assert "not valid JSON" in captured.err
+    assert "Wrote helix block to" in captured.out
+    assert "Wrote MCP server config" not in captured.out
+    assert START_MARKER in (working_dir / "CLAUDE.md").read_text()
+
+
+def test_cmd_uninstall_reports_invalid_mcp_config_and_continues(
+    capsys: pytest.CaptureFixture[str], working_dir: Path
+) -> None:
+    cmd_install(client=["claude"], scope=Scope.PROJECT, yes=True)
+    capsys.readouterr()
+    (working_dir / ".mcp.json").write_text("{not valid json")
+    cmd_uninstall(yes=True)
+    captured = capsys.readouterr()
+    assert "not valid JSON" in captured.err
+    assert "Removed helix block from" in captured.out
+    assert "Removed MCP server config" not in captured.out
+
+
 @pytest.mark.usefixtures("_install_claude_client")
 def test_cmd_uninstall_removes_existing_block(
     capsys: pytest.CaptureFixture[str],

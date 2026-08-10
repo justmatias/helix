@@ -7,6 +7,7 @@ makes it a stronger guarantee than the instruction snippet in ``snippet.py``.
 import json
 from pathlib import Path
 
+from .json_config import read_json
 from .models import Client, Scope
 
 HOOK_EVENT = "SessionStart"
@@ -21,13 +22,14 @@ def install_hook(client: Client, scope: Scope, project_root: Path) -> Path | Non
     """Add the Helix SessionStart hook to the client's settings file.
 
     Returns the path written, ``None`` if this client has no hook settings for
-    the requested scope or the hook is already present.
+    the requested scope or the hook is already present. Raises
+    ``InvalidConfigError`` if the existing file can't be parsed.
     """
     path = client.hook_path_for(scope, project_root)
     if not path:
         return None
 
-    data: dict = json.loads(path.read_text()) if path.exists() else {}
+    data: dict = read_json(path, path.read_text() if path.exists() else "")
     entries: list[dict] = data.setdefault("hooks", {}).setdefault(HOOK_EVENT, [])
     if any(
         hook.get("command") == HOOK_COMMAND
@@ -43,12 +45,15 @@ def install_hook(client: Client, scope: Scope, project_root: Path) -> Path | Non
 
 
 def uninstall_hook(client: Client, scope: Scope, project_root: Path) -> bool:
-    """Remove the Helix SessionStart hook. Returns ``True`` if one was removed."""
+    """Remove the Helix SessionStart hook. Returns ``True`` if one was removed.
+
+    Raises ``InvalidConfigError`` if the existing file can't be parsed.
+    """
     path = client.hook_path_for(scope, project_root)
     if path is None or not path.exists():
         return False
 
-    data: dict = json.loads(path.read_text() or "{}")
+    data: dict = read_json(path, path.read_text())
     entries = data.get("hooks", {}).get(HOOK_EVENT, [])
     remaining = [
         entry
