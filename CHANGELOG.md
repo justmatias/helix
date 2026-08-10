@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v6.0.0 (2026-08-10)
+
+### Features
+
+- Breaking change detected [skip ci]
+  ([`f18de42`](https://github.com/justmatias/helix/commit/f18de4274f10b76cf837c951939e399aaef60371))
+
+
 ## v5.0.0 (2026-08-10)
 
 ### Bug Fixes
