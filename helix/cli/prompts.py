@@ -109,4 +109,7 @@ def select_clients(*, keys: list[str] | None, yes: bool) -> list[Client]:
         return available
 
     typer.echo("Pick client(s):")
-    return [available[i] for i in pick_many("Clients", [c.name for c in available])]
+    return [
+        available[selected]
+        for selected in pick_many("Clients", [client.name for client in available])
+    ]
