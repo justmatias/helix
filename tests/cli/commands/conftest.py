@@ -27,9 +27,20 @@ def _initialize_brain(brain: Brain) -> None:
 
 
 @pytest.fixture
-def working_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
-    """The directory CLI commands operate in (project root)."""
+def _remember_conv_a() -> None:
+    """Seed a single ``conv-a`` convention tagged ``python``."""
+    Brain().remember(name="conv-a", body="Body A.", tags=["python"])
+
+
+@pytest.fixture
+def _chdir_to_tmp_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Change into ``tmp_path``, so CLI commands operate on a scratch project root."""
     monkeypatch.chdir(tmp_path)
+
+
+@pytest.fixture
+def working_dir(_chdir_to_tmp_path: None, tmp_path: Path) -> Path:
+    """The directory CLI commands operate in (project root)."""
     return tmp_path
 
 

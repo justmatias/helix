@@ -1,8 +1,15 @@
 import json
+from collections.abc import Callable
 from pathlib import Path
 
-from helix.core.installer import Client, Scope, install_hook, uninstall_hook
-from helix.core.installer.hooks import HOOK_COMMAND, HOOK_EVENT
+from helix.core import (
+    HOOK_COMMAND,
+    HOOK_EVENT,
+    Client,
+    Scope,
+    install_hook,
+    uninstall_hook,
+)
 
 
 def _commands(path: Path) -> list[str]:
@@ -15,45 +22,41 @@ def _commands(path: Path) -> list[str]:
 
 
 def test_install_hook_creates_settings_file(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None], hook_global_path: Path
 ) -> None:
-    assert install_hook(hook_client, Scope.GLOBAL, Path.cwd()) == hook_global_path
+    assert install_hook_globally() == hook_global_path
     assert _commands(hook_global_path) == [HOOK_COMMAND]
 
 
 def test_install_hook_preserves_existing_settings(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None], hook_global_path: Path
 ) -> None:
     hook_global_path.write_text(json.dumps({"theme": "dark"}))
-    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    install_hook_globally()
     data = json.loads(hook_global_path.read_text())
     assert data["theme"] == "dark"
     assert _commands(hook_global_path) == [HOOK_COMMAND]
 
 
 def test_install_hook_keeps_foreign_session_start_entries(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None], hook_global_path: Path
 ) -> None:
     hook_global_path.write_text(
-        json.dumps(
-            {
-                "hooks": {
-                    HOOK_EVENT: [
-                        {"hooks": [{"type": "command", "command": "echo hi"}]}
-                    ]
-                }
+        json.dumps({
+            "hooks": {
+                HOOK_EVENT: [{"hooks": [{"type": "command", "command": "echo hi"}]}]
             }
-        )
+        })
     )
-    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    install_hook_globally()
     assert _commands(hook_global_path) == ["echo hi", HOOK_COMMAND]
 
 
 def test_install_hook_is_idempotent(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None], hook_global_path: Path
 ) -> None:
-    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
-    assert install_hook(hook_client, Scope.GLOBAL, Path.cwd()) is None
+    install_hook_globally()
+    assert install_hook_globally() is None
     assert _commands(hook_global_path) == [HOOK_COMMAND]
 
 
@@ -72,41 +75,47 @@ def test_install_hook_project_scope(hook_client: Client, tmp_path: Path) -> None
 
 
 def test_uninstall_hook_deletes_file_when_empty(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None],
+    uninstall_hook_globally: Callable[[], bool],
+    hook_global_path: Path,
 ) -> None:
-    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
-    assert uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    install_hook_globally()
+    assert uninstall_hook_globally()
     assert not hook_global_path.exists()
 
 
 def test_uninstall_hook_keeps_other_settings(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None],
+    uninstall_hook_globally: Callable[[], bool],
+    hook_global_path: Path,
 ) -> None:
     hook_global_path.write_text(json.dumps({"theme": "dark"}))
-    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
-    uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    install_hook_globally()
+    uninstall_hook_globally()
     data = json.loads(hook_global_path.read_text())
     assert data == {"theme": "dark"}
 
 
 def test_uninstall_hook_keeps_foreign_entries(
-    hook_client: Client, hook_global_path: Path
+    install_hook_globally: Callable[[], Path | None],
+    uninstall_hook_globally: Callable[[], bool],
+    hook_global_path: Path,
 ) -> None:
-    install_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    install_hook_globally()
     data = json.loads(hook_global_path.read_text())
-    data["hooks"][HOOK_EVENT].append(
-        {"hooks": [{"type": "command", "command": "echo hi"}]}
-    )
+    data["hooks"][HOOK_EVENT].append({
+        "hooks": [{"type": "command", "command": "echo hi"}]
+    })
     hook_global_path.write_text(json.dumps(data))
-    assert uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    assert uninstall_hook_globally()
     assert _commands(hook_global_path) == ["echo hi"]
 
 
 def test_uninstall_hook_returns_false_when_absent(
-    hook_client: Client, hook_global_path: Path
+    uninstall_hook_globally: Callable[[], bool], hook_global_path: Path
 ) -> None:
     hook_global_path.write_text(json.dumps({"theme": "dark"}))
-    assert not uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
+    assert not uninstall_hook_globally()
 
 
 def test_uninstall_hook_returns_false_without_file(

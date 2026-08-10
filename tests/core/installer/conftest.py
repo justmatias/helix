@@ -1,9 +1,16 @@
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from helix.core import clients
-from helix.core.installer import Client, McpConfigFormat, Scope
+from helix.core import (
+    Client,
+    McpConfigFormat,
+    Scope,
+    clients,
+    install_hook,
+    uninstall_hook,
+)
 
 
 @pytest.fixture
@@ -68,6 +75,18 @@ def hook_global_path(hook_client: Client, tmp_path: Path) -> Path:
     assert path is not None
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
+
+
+@pytest.fixture
+def install_hook_globally(hook_client: Client) -> Callable[[], Path | None]:
+    """Return a callable that installs ``hook_client``'s SessionStart hook globally."""
+    return lambda: install_hook(hook_client, Scope.GLOBAL, Path.cwd())
+
+
+@pytest.fixture
+def uninstall_hook_globally(hook_client: Client) -> Callable[[], bool]:
+    """Return a callable that removes ``hook_client``'s global SessionStart hook."""
+    return lambda: uninstall_hook(hook_client, Scope.GLOBAL, Path.cwd())
 
 
 @pytest.fixture

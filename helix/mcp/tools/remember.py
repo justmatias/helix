@@ -1,6 +1,4 @@
-from helix.core import Brain
-from helix.core.conventions.convention import Convention
-from helix.core.settings import Settings
+from helix.core import Brain, Convention, Settings
 from helix.utils import logger
 
 

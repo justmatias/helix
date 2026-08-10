@@ -1,7 +1,7 @@
 import pytest
 
 from helix.core import Brain
-from helix.mcp.tools.remember import remember
+from helix.mcp import remember
 
 
 def test_remember_returns_path_string() -> None:

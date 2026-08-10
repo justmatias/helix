@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from helix.core.settings import Settings
+from helix.core import Settings
 
 from .convention import Convention
 
@@ -110,8 +110,9 @@ class Brain:
     @staticmethod
     def _matches(convention: Convention, needle: str, tags_set: set[str]) -> bool:
         haystack = " ".join([convention.name, convention.body, *convention.tags])
-        return needle in haystack.lower() and (
-            not tags_set or tags_set & set(convention.tags)
+        return bool(
+            needle in haystack.lower()
+            and (not tags_set or tags_set & set(convention.tags))
         )
 
     def _load_conventions(self) -> list[Convention]:

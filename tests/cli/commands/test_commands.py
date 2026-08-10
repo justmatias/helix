@@ -15,8 +15,7 @@ from helix.cli import (
     cmd_remember,
     cmd_uninstall,
 )
-from helix.core import START_MARKER, Brain, Scope, Settings
-from helix.core.installer.hooks import HOOK_EVENT
+from helix.core import HOOK_EVENT, START_MARKER, Brain, Scope, Settings
 
 
 def test_cmd_remember_creates_file_and_echoes(
@@ -79,15 +78,15 @@ def test_cmd_list_empty(capsys: pytest.CaptureFixture[str]) -> None:
     assert "No conventions found." in captured.out
 
 
+@pytest.mark.usefixtures("_remember_conv_a")
 def test_cmd_list_shows_entries(capsys: pytest.CaptureFixture[str]) -> None:
-    Brain().remember(name="conv-a", body="Body A.", tags=["python"])
     cmd_list(tags=None)
     captured = capsys.readouterr()
     assert "conv-a" in captured.out
 
 
+@pytest.mark.usefixtures("_remember_conv_a")
 def test_cmd_list_filters_by_tags(capsys: pytest.CaptureFixture[str]) -> None:
-    Brain().remember(name="conv-a", body="Body A.", tags=["python"])
     Brain().remember(name="conv-b", body="Body B.", tags=["typescript"])
     cmd_list(tags="python")
     captured = capsys.readouterr()
@@ -118,8 +117,8 @@ def test_cmd_recall_prints_full_body(capsys: pytest.CaptureFixture[str]) -> None
     assert "Second line." in captured.out
 
 
+@pytest.mark.usefixtures("_remember_conv_a")
 def test_cmd_list_prints_header(capsys: pytest.CaptureFixture[str]) -> None:
-    Brain().remember(name="conv-a", body="Body A.", tags=["python"])
     cmd_list(tags=None)
     assert "# Helix Convention Index" in capsys.readouterr().out
 
@@ -189,10 +188,10 @@ def test_cmd_install_writes_block_for_selected_client(
     assert START_MARKER in target.read_text()
 
 
+@pytest.mark.usefixtures("_chdir_to_tmp_path")
 def test_cmd_install_no_detected_clients_lists_all(
     capsys: pytest.CaptureFixture[str],
     set_answers: Callable[..., None],
-    working_dir: Path,
 ) -> None:
     set_answers("1", 2)
     cmd_install()
@@ -212,7 +211,7 @@ def test_cmd_install_non_interactive_with_flags(
     assert "Restart your client" in captured.out
 
 
-@pytest.mark.usefixtures("working_dir")
+@pytest.mark.usefixtures("_chdir_to_tmp_path")
 def test_cmd_install_rejects_unknown_client(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -222,14 +221,16 @@ def test_cmd_install_rejects_unknown_client(
     assert "Unknown client(s): nope" in capsys.readouterr().err
 
 
-@pytest.mark.usefixtures("working_dir", "_create_claude_directory")
+@pytest.mark.usefixtures("_chdir_to_tmp_path", "_create_claude_directory")
 def test_cmd_install_yes_defaults_to_all_detected_and_global(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     cmd_install(yes=True)
     captured = capsys.readouterr()
     assert "No client config directories found" not in captured.out
-    assert START_MARKER in (Settings.HOME_DIRECTORY / ".claude" / "CLAUDE.md").read_text()
+    assert (
+        START_MARKER in (Settings.HOME_DIRECTORY / ".claude" / "CLAUDE.md").read_text()
+    )
 
 
 def test_cmd_uninstall_yes_reverts_everything_install_wrote(
@@ -260,7 +261,7 @@ def test_cmd_uninstall_removes_existing_block(
     assert not (working_dir / "CLAUDE.md").exists()
 
 
-@pytest.mark.usefixtures("working_dir")
+@pytest.mark.usefixtures("_chdir_to_tmp_path")
 def test_cmd_uninstall_no_blocks_found(
     capsys: pytest.CaptureFixture[str],
 ) -> None:

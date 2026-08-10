@@ -1,8 +1,7 @@
 from pathlib import Path
 
+from helix.core.installer.models import Client, McpConfigFormat
 from helix.core.settings import Settings
-
-from ..models import Client, McpConfigFormat
 
 
 def codex() -> Client:

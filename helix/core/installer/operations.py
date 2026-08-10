@@ -5,17 +5,13 @@ from .models import Client, Scope, SnippetBlock
 from .snippet import BLOCK_PATTERN, END_MARKER, SNIPPET, START_MARKER
 
 
-def clients() -> list[Client]:
-    return all_clients()
-
-
 def detect_installed_clients() -> list[Client]:
-    return [client for client in clients() if client.installation_directory.exists()]
+    return [client for client in all_clients() if client.installation_directory.exists()]
 
 
 def detect_snippet_blocks(project_root: Path) -> list[SnippetBlock]:
     blocks: list[SnippetBlock] = []
-    for client in clients():
+    for client in all_clients():
         for scope in Scope:
             path = client.path_for(scope, project_root)
             if not path.exists():

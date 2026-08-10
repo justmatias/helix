@@ -3,6 +3,9 @@ from .conventions import Brain, Convention
 from .installer import (
     BLOCK_PATTERN,
     END_MARKER,
+    HOOK_COMMAND,
+    HOOK_ENTRY,
+    HOOK_EVENT,
     SNIPPET,
     START_MARKER,
     Client,
@@ -24,6 +27,9 @@ from .settings import Settings
 __all__ = [
     "BLOCK_PATTERN",
     "END_MARKER",
+    "HOOK_COMMAND",
+    "HOOK_ENTRY",
+    "HOOK_EVENT",
     "SNIPPET",
     "START_MARKER",
     "Brain",

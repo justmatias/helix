@@ -5,14 +5,18 @@ from typing import Annotated
 
 import typer
 
-from helix.core import Brain, Scope, detect_snippet_blocks, install, uninstall
-from helix.core.installer import (
+from helix.core import (
+    Brain,
+    Scope,
+    detect_snippet_blocks,
+    install,
     install_hook,
     install_mcp_config,
+    uninstall,
     uninstall_hook,
     uninstall_mcp_config,
 )
-from helix.mcp.app import run_mcp_server
+from helix.mcp import run_mcp_server
 from helix.utils import parse_csv, resolve_text_argument, slugify
 
 from .prompts import pick, pick_many, select_clients

@@ -5,9 +5,8 @@ import sys
 import questionary
 import typer
 
-from helix.core import Client
+from helix.core import Client, detect_installed_clients
 from helix.core.installer import clients as all_clients
-from helix.core.installer import detect_installed_clients
 
 
 def _interactive() -> bool:

@@ -7,7 +7,8 @@ and ``mcp_config.install_mcp_config`` already no-op for clients that don't
 set the relevant path, so there is nothing left to branch on per client.
 """
 
-from ..models import Client
+from helix.core.installer.models import Client
+
 from .claude import claude
 from .codex import codex
 from .cursor import cursor
