@@ -7,7 +7,7 @@ makes it a stronger guarantee than the instruction snippet in ``snippet.py``.
 import json
 from pathlib import Path
 
-from .errors import read_json
+from .json_config import read_json
 from .models import Client, Scope
 
 HOOK_EVENT = "SessionStart"

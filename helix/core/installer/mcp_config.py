@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from .errors import read_json
+from .json_config import read_json
 from .models import Client, McpConfigFormat, Scope
 
 HELIX_ENTRY = {"command": "helix", "args": ["serve"]}
