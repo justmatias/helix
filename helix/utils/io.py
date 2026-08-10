@@ -1,6 +1,9 @@
 import sys
+from collections.abc import Callable
 
 import typer
+
+from helix.core import InvalidConfigError
 
 
 def resolve_text_argument(value: str | None) -> str:
@@ -10,3 +13,12 @@ def resolve_text_argument(value: str | None) -> str:
     elif value is None:
         value = typer.edit("") or ""
     return value.strip()
+
+
+def warn_on_invalid_config[T](func: Callable[..., T], *args: object) -> T | None:
+    """Call ``func(*args)``, echoing and swallowing an ``InvalidConfigError``."""
+    try:
+        return func(*args)
+    except InvalidConfigError as exc:
+        typer.echo(str(exc), err=True)
+        return None
