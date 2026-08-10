@@ -3,14 +3,6 @@
 
 ## v6.0.0 (2026-08-10)
 
-### Features
-
-- Breaking change detected [skip ci]
-  ([`f18de42`](https://github.com/justmatias/helix/commit/f18de4274f10b76cf837c951939e399aaef60371))
-
-
-## v5.0.0 (2026-08-10)
-
 ### Bug Fixes
 
 - Correct per-client MCP config shapes and guard bad config files
@@ -84,6 +76,9 @@ Co-authored-by: Claude Sonnet 5 <noreply@anthropic.com>
 
 - Breaking change detected [skip ci]
   ([`7aee7d6`](https://github.com/justmatias/helix/commit/7aee7d6ffc67a3dc53f6e67ad7659e8b9dcaa2c6))
+
+- Breaking change detected [skip ci]
+  ([`f18de42`](https://github.com/justmatias/helix/commit/f18de4274f10b76cf837c951939e399aaef60371))
 
 - Cut friction in capture, install, and recall ([#16](https://github.com/justmatias/helix/pull/16),
   [`eb8d1ca`](https://github.com/justmatias/helix/commit/eb8d1ca06615e5969320ffa4c148f1b6b3a8d7fd))
