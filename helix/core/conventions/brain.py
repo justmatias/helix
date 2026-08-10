@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from helix.core import Settings
+from helix.core.settings import Settings
 
 from .convention import Convention
 

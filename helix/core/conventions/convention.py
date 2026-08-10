@@ -5,7 +5,7 @@ from typing import Self
 import frontmatter
 from pydantic import BaseModel, ConfigDict, Field
 
-from helix.core import Settings
+from helix.core.settings import Settings
 
 CONVENTION_REGEX = r"\[([^\]]*)\] —"
 
