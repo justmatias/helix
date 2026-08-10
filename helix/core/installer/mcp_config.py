@@ -3,12 +3,29 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from typing import NamedTuple
 
 from .json_config import read_json
 from .models import Client, McpConfigFormat, Scope
 
-HELIX_ENTRY = {"command": "helix", "args": ["serve"]}
-OPENCODE_ENTRY = {"type": "local", "command": ["helix", "serve"], "enabled": True}
+
+class JsonMcpShape(NamedTuple):
+    """Where and how a JSON-family format nests the "helix" server entry."""
+
+    key: str
+    entry: dict
+
+
+# JSON-family formats (JSON, OPENCODE) both merge a "helix" entry into a
+# top-level object; they differ only in that object's key and entry shape.
+JSON_SHAPE_BY_FORMAT: dict[McpConfigFormat, JsonMcpShape] = {
+    McpConfigFormat.JSON: JsonMcpShape(
+        "mcpServers", {"command": "helix", "args": ["serve"]}
+    ),
+    McpConfigFormat.OPENCODE: JsonMcpShape(
+        "mcp", {"type": "local", "command": ["helix", "serve"], "enabled": True}
+    ),
+}
 
 # Codex has no comment-block convention of its own, so Helix wraps its TOML
 # table in markers (like snippet.py does for markdown) rather than matching
@@ -26,25 +43,28 @@ TOML_BLOCK_PATTERN = re.compile(
 # Claude Code's global MCP scope lives in ~/.claude.json, which also holds
 # live session state for a running client. Prefer the CLI's own migration
 # logic over rewriting that file directly, when it's available.
-CLAUDE_ADD_USER_SCOPE = ["claude", "mcp", "add", "-s", "user", "helix", "--", "helix", "serve"]
+CLAUDE_ADD_USER_SCOPE = [
+    "claude", "mcp", "add", "-s", "user", "helix", "--", "helix", "serve",
+]  # fmt: skip
 CLAUDE_REMOVE_USER_SCOPE = ["claude", "mcp", "remove", "-s", "user", "helix"]
 
 
 def _uses_claude_user_scope(client: Client, scope: Scope) -> bool:
-    return client.key == "claude" and scope == Scope.GLOBAL and shutil.which("claude") is not None
+    return (
+        client.key == "claude"
+        and scope == Scope.GLOBAL
+        and shutil.which("claude") is not None
+    )
 
 
-def _merge(existing: str, fmt: McpConfigFormat, path: Path) -> str:
-    if fmt == McpConfigFormat.JSON:
-        data = read_json(path, existing)
-        data.setdefault("mcpServers", {})["helix"] = HELIX_ENTRY
-        return json.dumps(data, indent=2) + "\n"
+def _merge_json_entry(existing: str, path: Path, fmt: McpConfigFormat) -> str:
+    shape = JSON_SHAPE_BY_FORMAT[fmt]
+    data = read_json(path, existing)
+    data.setdefault(shape.key, {})["helix"] = shape.entry
+    return json.dumps(data, indent=2) + "\n"
 
-    if fmt == McpConfigFormat.OPENCODE:
-        data = read_json(path, existing)
-        data.setdefault("mcp", {})["helix"] = OPENCODE_ENTRY
-        return json.dumps(data, indent=2) + "\n"
 
+def _merge_toml_block(existing: str) -> str:
     if TOML_BLOCK_PATTERN.search(existing):
         return TOML_BLOCK_PATTERN.sub(TOML_BLOCK.rstrip("\n"), existing)
     if TOML_HEADER in existing:
@@ -54,20 +74,27 @@ def _merge(existing: str, fmt: McpConfigFormat, path: Path) -> str:
     return TOML_BLOCK
 
 
-def _remove(existing: str, fmt: McpConfigFormat, path: Path) -> str | None:
-    if fmt in (McpConfigFormat.JSON, McpConfigFormat.OPENCODE):
-        if not existing.strip():
-            return None
-        data = read_json(path, existing)
-        key = "mcpServers" if fmt == McpConfigFormat.JSON else "mcp"
-        servers = data.get(key, {})
-        if "helix" not in servers:
-            return None
-        del servers["helix"]
-        if not servers:
-            del data[key]
-        return json.dumps(data, indent=2) + "\n" if data else ""
+def _merge(existing: str, fmt: McpConfigFormat, path: Path) -> str:
+    if fmt in JSON_SHAPE_BY_FORMAT:
+        return _merge_json_entry(existing, path, fmt)
+    return _merge_toml_block(existing)
 
+
+def _remove_json_entry(existing: str, path: Path, fmt: McpConfigFormat) -> str | None:
+    if not existing.strip():
+        return None
+    key = JSON_SHAPE_BY_FORMAT[fmt].key
+    data = read_json(path, existing)
+    servers = data.get(key, {})
+    if "helix" not in servers:
+        return None
+    del servers["helix"]
+    if not servers:
+        del data[key]
+    return json.dumps(data, indent=2) + "\n" if data else ""
+
+
+def _remove_toml_block(existing: str) -> str | None:
     if TOML_BLOCK_PATTERN.search(existing):
         remaining = TOML_BLOCK_PATTERN.sub("", existing).strip("\n")
         return remaining + "\n" if remaining else ""
@@ -77,6 +104,12 @@ def _remove(existing: str, fmt: McpConfigFormat, path: Path) -> str | None:
         return None
     remaining = (existing + "\n").replace(TOML_INNER, "").strip("\n")
     return remaining + "\n" if remaining else ""
+
+
+def _remove(existing: str, fmt: McpConfigFormat, path: Path) -> str | None:
+    if fmt in JSON_SHAPE_BY_FORMAT:
+        return _remove_json_entry(existing, path, fmt)
+    return _remove_toml_block(existing)
 
 
 def install_mcp_config(client: Client, scope: Scope, project_root: Path) -> Path | None:
@@ -112,7 +145,9 @@ def uninstall_mcp_config(client: Client, scope: Scope, project_root: Path) -> bo
         return False
 
     if _uses_claude_user_scope(client, scope):
-        completed = subprocess.run(CLAUDE_REMOVE_USER_SCOPE, check=False, capture_output=True)
+        completed = subprocess.run(
+            CLAUDE_REMOVE_USER_SCOPE, check=False, capture_output=True
+        )
         return completed.returncode == 0
 
     if not path.exists():
