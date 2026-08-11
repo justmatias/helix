@@ -35,7 +35,7 @@ helix forget <name>
 helix install   [--client <key>] [--scope global|project] [--yes]
 helix uninstall [--yes]
 helix serve     # start the MCP server
-helix --version # print the installed version
+helix version   # print the installed version
 ```
 
 `remember` takes the body three ways — as an argument, from stdin, or from `$EDITOR`:

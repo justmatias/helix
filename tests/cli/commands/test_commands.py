@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 import typer
 
+from helix import __version__
 from helix.cli import (
     cmd_edit,
     cmd_forget,
@@ -14,6 +15,7 @@ from helix.cli import (
     cmd_recall,
     cmd_remember,
     cmd_uninstall,
+    cmd_version,
 )
 from helix.core import HOOK_EVENT, START_MARKER, Brain, Scope, Settings
 
@@ -92,6 +94,12 @@ def test_cmd_list_filters_by_tags(capsys: pytest.CaptureFixture[str]) -> None:
     captured = capsys.readouterr()
     assert "conv-a" in captured.out
     assert "conv-b" not in captured.out
+
+
+def test_cmd_version_prints_version(capsys: pytest.CaptureFixture[str]) -> None:
+    cmd_version()
+    captured = capsys.readouterr()
+    assert captured.out.strip() == f"helix {__version__}"
 
 
 def test_cmd_recall_no_match(capsys: pytest.CaptureFixture[str]) -> None:
