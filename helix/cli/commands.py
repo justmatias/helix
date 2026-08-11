@@ -5,6 +5,7 @@ from typing import Annotated
 
 import typer
 
+from helix import __version__
 from helix.core import (
     Brain,
     Scope,
@@ -181,6 +182,10 @@ def cmd_serve() -> None:  # pragma: no cover
     run_mcp_server()
 
 
+def cmd_version() -> None:
+    typer.echo(f"helix {__version__}")
+
+
 def cmd_uninstall(
     yes: Annotated[
         bool, typer.Option("--yes", "-y", help="Remove every detected block.")
@@ -228,4 +233,5 @@ COMMANDS: dict[str, Callable[..., None]] = {
     "remember": cmd_remember,
     "serve": cmd_serve,
     "uninstall": cmd_uninstall,
+    "version": cmd_version,
 }
