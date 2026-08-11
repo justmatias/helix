@@ -1,7 +1,51 @@
 # CHANGELOG
 
 
+## v6.1.0 (2026-08-11)
+
+### Documentation
+
+- Fold changelog's 5.0.0 entry into 6.0.0 [skip ci]
+  ([`4c2d1f1`](https://github.com/justmatias/helix/commit/4c2d1f1d1ec89bf90a34e46b13e07fd8d340deaa))
+
+5.0.0 was never actually published (its GitHub Release creation failed and the version got
+  superseded by 6.0.0 before publish ran), so it shouldn't appear as a real release in the
+  changelog. Merges its content into the 6.0.0 section instead.
+
+### Features
+
+- Instruct agents to write project-agnostic feedback to Helix
+  ([#22](https://github.com/justmatias/helix/pull/22),
+  [`35d4c5e`](https://github.com/justmatias/helix/commit/35d4c5e4edc73bf86efee8dc230fb69704f97164))
+
+* feat: instruct agents to write project-agnostic feedback to Helix
+
+Helix is meant to be the shared cross-project rules store, but agents had no signal to generalize a
+  project-scoped correction into it — only to save an explicit "remember this globally" request.
+  Extend the installed snippet so a general coding pattern surfaced during normal work (not just an
+  explicit ask) gets written to Helix instead of the client's own project-local memory, even when it
+  came up in this project's context.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* chore(config): update pre-commit hooks
+
+---------
+
+Co-authored-by: Claude Sonnet 5 <noreply@anthropic.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+
 ## v6.0.0 (2026-08-10)
+
+### Features
+
+- Breaking change detected [skip ci]
+  ([`f18de42`](https://github.com/justmatias/helix/commit/f18de4274f10b76cf837c951939e399aaef60371))
+
+
+## v5.0.0 (2026-08-10)
 
 ### Bug Fixes
 
@@ -76,9 +120,6 @@ Co-authored-by: Claude Sonnet 5 <noreply@anthropic.com>
 
 - Breaking change detected [skip ci]
   ([`7aee7d6`](https://github.com/justmatias/helix/commit/7aee7d6ffc67a3dc53f6e67ad7659e8b9dcaa2c6))
-
-- Breaking change detected [skip ci]
-  ([`f18de42`](https://github.com/justmatias/helix/commit/f18de4274f10b76cf837c951939e399aaef60371))
 
 - Cut friction in capture, install, and recall ([#16](https://github.com/justmatias/helix/pull/16),
   [`eb8d1ca`](https://github.com/justmatias/helix/commit/eb8d1ca06615e5969320ffa4c148f1b6b3a8d7fd))
