@@ -1,6 +1,11 @@
 # Helix
 
-Global convention memory for AI coding agents — persist your coding preferences once, surface them in every Claude Code, Cursor, or MCP-compatible session.
+[![PyPI](https://img.shields.io/pypi/v/helix-memory)](https://pypi.org/project/helix-memory/)
+[![CI](https://github.com/justmatias/helix/actions/workflows/ci.yml/badge.svg)](https://github.com/justmatias/helix/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/pypi/pyversions/helix-memory)](https://pypi.org/project/helix-memory/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Global convention memory for AI coding agents — persist your coding preferences once, surface them in every Claude Code, Cursor, Codex, Opencode, or other MCP-compatible session.
 
 ## Install
 
@@ -69,6 +74,13 @@ export HELIX_BRAIN_DIR=~/dotfiles/brain
 ## MCP server
 
 `helix serve` starts a stdio MCP server that exposes four tools: `remember`, `recall`, `list_conventions`, `forget`.
+
+`helix install` wires this up automatically for a supported client: it writes an
+instructions snippet to the client's rules file (`CLAUDE.md`, `AGENTS.md`, or
+`.cursor/rules/helix.mdc`), registers the MCP server, and — for Claude Code —
+adds a `SessionStart` hook. Supported clients: **Claude Code**, **Cursor**,
+**Codex CLI**, and **Opencode**. The sections below show the config `helix
+install` writes, for setting it up by hand.
 
 ### Claude Code
 
@@ -149,6 +161,49 @@ Or edit `~/.claude.json` manually:
     "helix": {
       "command": "helix",
       "args": ["serve"]
+    }
+  }
+}
+```
+
+### Codex CLI
+
+Codex only supports a global MCP config, in TOML:
+
+```toml
+# ~/.codex/config.toml
+[mcp_servers.helix]
+command = "helix"
+args = ["serve"]
+```
+
+### Opencode
+
+**Global**:
+
+```json
+// ~/.config/opencode/opencode.json
+{
+  "mcp": {
+    "helix": {
+      "type": "local",
+      "command": ["helix", "serve"],
+      "enabled": true
+    }
+  }
+}
+```
+
+**Project-scoped**:
+
+```json
+// opencode.json at the project root
+{
+  "mcp": {
+    "helix": {
+      "type": "local",
+      "command": ["helix", "serve"],
+      "enabled": true
     }
   }
 }
