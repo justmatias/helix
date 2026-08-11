@@ -1,5 +1,7 @@
 import io
 import json
+import subprocess
+import sys
 from collections.abc import Callable
 from pathlib import Path
 
@@ -15,6 +17,7 @@ from helix.cli import (
     cmd_recall,
     cmd_remember,
     cmd_uninstall,
+    cmd_update,
     cmd_version,
 )
 from helix.core import HOOK_EVENT, START_MARKER, Brain, Scope, Settings
@@ -100,6 +103,38 @@ def test_cmd_version_prints_version(capsys: pytest.CaptureFixture[str]) -> None:
     cmd_version()
     captured = capsys.readouterr()
     assert captured.out.strip() == f"helix {__version__}"
+
+
+def test_cmd_update_runs_resolved_command_and_reports_success(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "helix.cli.commands.update_command",
+        lambda: ["uv", "tool", "upgrade", "helix-memory"],
+    )
+    monkeypatch.setattr(
+        "helix.cli.commands.update", lambda: subprocess.CompletedProcess([], 0)
+    )
+    cmd_update()
+    captured = capsys.readouterr()
+    assert "Running: uv tool upgrade helix-memory" in captured.out
+    assert "Helix is up to date." in captured.out
+
+
+def test_cmd_update_reports_failure_and_exits(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        "helix.cli.commands.update_command",
+        lambda: [sys.executable, "-m", "pip", "install", "--upgrade", "helix-memory"],
+    )
+    monkeypatch.setattr(
+        "helix.cli.commands.update", lambda: subprocess.CompletedProcess([], 1)
+    )
+    with pytest.raises(typer.Exit) as exc:
+        cmd_update()
+    assert exc.value.exit_code == 1
+    assert "Update failed." in capsys.readouterr().err
 
 
 def test_cmd_recall_no_match(capsys: pytest.CaptureFixture[str]) -> None:

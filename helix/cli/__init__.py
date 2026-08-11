@@ -7,6 +7,7 @@ from .commands import (
     cmd_recall,
     cmd_remember,
     cmd_uninstall,
+    cmd_update,
     cmd_version,
 )
 
@@ -19,5 +20,6 @@ __all__ = [
     "cmd_recall",
     "cmd_remember",
     "cmd_uninstall",
+    "cmd_update",
     "cmd_version",
 ]

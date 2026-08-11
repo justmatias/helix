@@ -17,6 +17,9 @@ uv tool install helix-memory
 pip install helix-memory
 ```
 
+Later, run `helix update` to upgrade to the latest version — it re-runs
+whichever of the two put it there.
+
 ## Quick start
 
 ```bash
@@ -41,6 +44,7 @@ helix install   [--client <key>] [--scope global|project] [--yes]
 helix uninstall [--yes]
 helix serve     # start the MCP server
 helix version   # print the installed version
+helix update    # upgrade the installed helix-memory package
 ```
 
 `remember` takes the body three ways — as an argument, from stdin, or from `$EDITOR`:
