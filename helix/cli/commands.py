@@ -16,6 +16,8 @@ from helix.core import (
     uninstall,
     uninstall_hook,
     uninstall_mcp_config,
+    update,
+    update_command,
 )
 from helix.mcp import run_mcp_server
 from helix.utils import (
@@ -186,6 +188,15 @@ def cmd_version() -> None:
     typer.echo(f"helix {__version__}")
 
 
+def cmd_update() -> None:
+    typer.echo(f"Running: {' '.join(update_command())}")
+    result = update()
+    if result.returncode != 0:
+        typer.echo("Update failed.", err=True)
+        raise typer.Exit(1)
+    typer.echo("Helix is up to date.")
+
+
 def cmd_uninstall(
     yes: Annotated[
         bool, typer.Option("--yes", "-y", help="Remove every detected block.")
@@ -233,5 +244,6 @@ COMMANDS: dict[str, Callable[..., None]] = {
     "remember": cmd_remember,
     "serve": cmd_serve,
     "uninstall": cmd_uninstall,
+    "update": cmd_update,
     "version": cmd_version,
 }

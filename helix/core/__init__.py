@@ -24,6 +24,7 @@ from .installer import (
     uninstall_mcp_config,
 )
 from .settings import Settings
+from .updater import update, update_command
 
 __all__ = [
     "BLOCK_PATTERN",
@@ -50,4 +51,6 @@ __all__ = [
     "uninstall",
     "uninstall_hook",
     "uninstall_mcp_config",
+    "update",
+    "update_command",
 ]
