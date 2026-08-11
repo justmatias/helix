@@ -1,5 +1,4 @@
-from helix.core import Brain
-from helix.core.settings import Settings
+from helix.core import Brain, Settings
 from helix.utils import logger
 
 

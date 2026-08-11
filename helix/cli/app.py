@@ -1,7 +1,8 @@
 import typer
 
-from helix.cli.commands import COMMANDS
 from helix.core import Brain
+
+from .commands import COMMANDS
 
 app = typer.Typer()
 

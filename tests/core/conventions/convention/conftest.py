@@ -9,7 +9,6 @@ def sample_convention() -> Convention:
         name="pydantic-validation",
         body="Prefer Pydantic v2 for boundary validation.",
         tags=["python", "validation"],
-        applies_to=["python"],
     )
 
 

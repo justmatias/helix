@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from helix.core import Brain
-from helix.mcp.tools.list import list_conventions
+from helix.mcp import list_conventions
 
 
 def test_list_empty() -> None:

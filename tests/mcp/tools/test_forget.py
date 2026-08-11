@@ -1,7 +1,7 @@
 import pytest
 
 from helix.core import Brain
-from helix.mcp.tools.forget import forget
+from helix.mcp import forget
 
 
 def test_forget_removes_convention(brain: Brain) -> None:

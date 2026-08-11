@@ -1,5 +1,6 @@
 from .app import app
 from .commands import (
+    cmd_edit,
     cmd_forget,
     cmd_install,
     cmd_list,
@@ -10,6 +11,7 @@ from .commands import (
 
 __all__ = [
     "app",
+    "cmd_edit",
     "cmd_forget",
     "cmd_install",
     "cmd_list",

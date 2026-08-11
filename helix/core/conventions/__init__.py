@@ -1,5 +1,5 @@
-from helix.core.conventions.brain import Brain
-from helix.core.conventions.convention import Convention
+from .brain import Brain
+from .convention import Convention
 
 __all__ = [
     "Brain",

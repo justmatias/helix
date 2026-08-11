@@ -12,6 +12,9 @@ class Scope(StrEnum):
 class McpConfigFormat(StrEnum):
     JSON = "json"
     TOML = "toml"
+    # Opencode's schema uses a `mcp.<name>` object with a `local`/`command`-array
+    # shape, not the generic `mcpServers` object other JSON-based clients accept.
+    OPENCODE = "opencode"
 
 
 class Client(BaseModel):
@@ -46,10 +49,22 @@ class Client(BaseModel):
         default=McpConfigFormat.JSON,
         description="File format used by this client's MCP config.",
     )
+    hook_global_path: Path | None = Field(
+        default=None,
+        description="Absolute path to the client's global session-hook settings file.",
+    )
+    hook_project_relative_path: Path | None = Field(
+        default=None,
+        description="Session-hook settings path relative to project root.",
+    )
 
     @property
     def installation_directory(self) -> Path:
-        return self.detect_path if self.detect_path is not None else self.global_path.parent
+        return (
+            self.detect_path
+            if self.detect_path is not None
+            else self.global_path.parent
+        )
 
     def path_for(self, scope: Scope, project_root: Path) -> Path:
         if scope == Scope.GLOBAL:
@@ -62,6 +77,13 @@ class Client(BaseModel):
         if self.mcp_project_relative_path is None:
             return None
         return project_root / self.mcp_project_relative_path
+
+    def hook_path_for(self, scope: Scope, project_root: Path) -> Path | None:
+        if scope == Scope.GLOBAL:
+            return self.hook_global_path
+        if not self.hook_project_relative_path:
+            return None
+        return project_root / self.hook_project_relative_path
 
 
 class SnippetBlock(BaseModel):

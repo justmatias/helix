@@ -5,6 +5,9 @@ import sys
 import questionary
 import typer
 
+from helix.core import Client, detect_installed_clients
+from helix.core.installer import clients as all_clients
+
 
 def _interactive() -> bool:
     return sys.stdin.isatty() and sys.stdout.isatty()
@@ -80,3 +83,32 @@ def _pick_many_fallback(
         if index not in chosen:
             chosen.append(index)
     return chosen
+
+
+def select_clients(*, keys: list[str] | None, yes: bool) -> list[Client]:
+    """Resolve client keys to `Client`s, or fall back to detection/prompting."""
+    detected = detect_installed_clients()
+    available = detected or all_clients()
+
+    if keys:
+        by_key = {client.key: client for client in all_clients()}
+        unknown = [key for key in keys if key not in by_key]
+        if unknown:
+            typer.echo(
+                f"Unknown client(s): {', '.join(unknown)}. "
+                f"Valid keys: {', '.join(by_key)}.",
+                err=True,
+            )
+            raise typer.Exit(1)
+        return [by_key[key] for key in keys]
+
+    if not detected:
+        typer.echo("No client config directories found; showing all known clients.")
+    if yes:
+        return available
+
+    typer.echo("Pick client(s):")
+    return [
+        available[selected]
+        for selected in pick_many("Clients", [client.name for client in available])
+    ]

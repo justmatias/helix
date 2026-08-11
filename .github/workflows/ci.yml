@@ -5,6 +5,12 @@ on:
     branches: ['main']
   pull_request:
     branches: ['main']
+  workflow_dispatch:
+    inputs:
+      force_publish:
+        description: 'Skip breaking-change detection and versioning, and just build + publish whatever version is currently on main to PyPI (use when a version was already bumped on main but the automated publish never ran)'
+        type: boolean
+        default: false
 
 permissions:
   id-token: write
@@ -88,7 +94,7 @@ jobs:
   breaking-changes:
     name: Detect breaking changes
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event.inputs.force_publish != 'true'
     needs: [lint, test]
     permissions:
       contents: write
@@ -133,7 +139,7 @@ jobs:
   versioning:
     name: Versioning
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event.inputs.force_publish != 'true'
     needs: [breaking-changes]
     steps:
       - uses: actions/checkout@v7
@@ -160,7 +166,13 @@ jobs:
   publish:
     name: Publish to PyPI
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && needs.versioning.outputs.released == 'true'
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      (
+        (needs.versioning.result == 'success' && needs.versioning.outputs.released == 'true') ||
+        github.event.inputs.force_publish == 'true'
+      )
     needs: [versioning]
     environment:
       name: pypi

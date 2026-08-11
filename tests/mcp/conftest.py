@@ -2,8 +2,7 @@ from collections.abc import Callable, Generator
 
 import pytest
 
-from helix.core import Brain
-from helix.core.settings import Settings
+from helix.core import Brain, Settings
 
 
 @pytest.fixture

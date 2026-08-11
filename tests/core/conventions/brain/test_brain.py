@@ -137,7 +137,7 @@ def test_recall_skips_invalid_convention_files(brain: Brain) -> None:
     brain.remember(name="valid", body="Has thing.", tags=["python"])
     (brain.conventions / "broken.md").write_text("---\ntags: [python]\n---\nthing.\n")
     results = brain.recall("thing", tags=["python"])
-    assert any("valid" in r for r in results)
+    assert [convention.name for convention in results] == ["valid"]
 
 
 @pytest.mark.usefixtures("_initialize_brain")
@@ -165,8 +165,8 @@ def test_recall_finds_match(brain: Brain) -> None:
         name="pydantic", body="Prefer Pydantic v2 for validation.", tags=["python"]
     )
     results = brain.recall("Pydantic")
-    assert len(results) > 0
-    assert any("pydantic" in result for result in results)
+    assert [convention.name for convention in results] == ["pydantic"]
+    assert results[0].body == "Prefer Pydantic v2 for validation."
 
 
 @pytest.mark.usefixtures("_initialize_brain")
@@ -180,5 +180,47 @@ def test_recall_filter_by_tag_excludes_other_stacks(brain: Brain) -> None:
     brain.remember(name="py-conv", body="Python thing.", tags=["python"])
     brain.remember(name="ts-conv", body="TypeScript thing.", tags=["typescript"])
     results = brain.recall("thing", tags=["python"])
-    assert any("py-conv" in result for result in results)
-    assert not any("ts-conv" in result for result in results)
+    assert [convention.name for convention in results] == ["py-conv"]
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_recall_matches_name_and_tags(brain: Brain) -> None:
+    brain.remember(name="pydantic", body="Nothing relevant here.", tags=["python"])
+    assert [c.name for c in brain.recall("pydantic")] == ["pydantic"]
+    assert [c.name for c in brain.recall("python")] == ["pydantic"]
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_recall_returns_each_convention_once(brain: Brain) -> None:
+    brain.remember(name="repeat", body="thing thing thing", tags=["python"])
+    assert len(brain.recall("thing")) == 1
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_free_name_returns_name_when_available(brain: Brain) -> None:
+    assert brain.free_name("fresh") == "fresh"
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_free_name_suffixes_on_collision(brain: Brain) -> None:
+    brain.remember(name="taken", body="One.", tags=[])
+    assert brain.free_name("taken") == "taken-2"
+    brain.remember(name="taken-2", body="Two.", tags=[])
+    assert brain.free_name("taken") == "taken-3"
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_reindex_refreshes_index_line(brain: Brain) -> None:
+    brain.remember(name="edited", body="Old body.", tags=["python"])
+    (brain.conventions / "edited.md").write_text(
+        "---\nname: edited\ntags: [python]\n---\n\nNew body.\n"
+    )
+    assert brain.reindex("edited")
+    assert "New body." in brain.index.read_text()
+    assert "Old body." not in brain.index.read_text()
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_reindex_returns_false_for_invalid_file(brain: Brain) -> None:
+    (brain.conventions / "broken.md").write_text("---\ntags: [python]\n---\nBody.\n")
+    assert not brain.reindex("broken")
