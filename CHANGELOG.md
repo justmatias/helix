@@ -1,6 +1,69 @@
 # CHANGELOG
 
 
+## v6.2.0 (2026-08-11)
+
+### Bug Fixes
+
+- **deps**: Bump python-semantic-release/python-semantic-release from 9.21.1 to 10.6.1
+  ([#13](https://github.com/justmatias/helix/pull/13),
+  [`4859270`](https://github.com/justmatias/helix/commit/485927007336a5c8d2d18cfcc7ff9e1e4bfd3685))
+
+* fix(deps): bump python-semantic-release/python-semantic-release
+
+Bumps
+  [python-semantic-release/python-semantic-release](https://github.com/python-semantic-release/python-semantic-release)
+  from 9.21.1 to 10.6.1. - [Release
+  notes](https://github.com/python-semantic-release/python-semantic-release/releases) -
+  [Changelog](https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.rst)
+  -
+  [Commits](https://github.com/python-semantic-release/python-semantic-release/compare/v9.21.1...v10.6.1)
+
+--- updated-dependencies: - dependency-name: python-semantic-release/python-semantic-release
+  dependency-version: 10.6.1
+
+dependency-type: direct:production
+
+update-type: version-update:semver-major ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+* chore(config): update pre-commit hooks
+
+---------
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+Co-authored-by: Matías Giménez <matiasgimenez.dev@gmail.com>
+
+### Features
+
+- Add version subcommand to CLI ([#20](https://github.com/justmatias/helix/pull/20),
+  [`cde2cb2`](https://github.com/justmatias/helix/commit/cde2cb24205077fb54c5f9f1c18ebe5d034a672e))
+
+* feat: add --version flag to CLI
+
+Lets users check the installed helix version without importing the package or inspecting
+  pyproject.toml.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+
+* feat: add version subcommand to CLI
+
+Replace the eager --version flag/callback indirection with a plain `helix version` subcommand,
+  following the same pattern as every other CLI command.
+
+* chore(config): update pre-commit hooks
+
+---------
+
+Co-authored-by: Claude Sonnet 5 <noreply@anthropic.com>
+
+Co-authored-by: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+
+
 ## v6.1.0 (2026-08-11)
 
 ### Documentation
