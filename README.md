@@ -45,6 +45,11 @@ helix uninstall [--yes]
 helix serve     # start the MCP server
 helix version   # print the installed version
 helix update    # upgrade the installed helix-memory package
+
+helix sync init <remote-url>                          # configure a git remote for backup
+helix sync push [--message <msg>]                      # commit and push local conventions
+helix sync pull [--strategy keep-local|overwrite|rename-conflict]   # merge in remote changes
+helix sync clone <remote-url> [--strategy ...]          # restore/merge conventions on a new host
 ```
 
 `remember` takes the body three ways — as an argument, from stdin, or from `$EDITOR`:
@@ -74,6 +79,39 @@ carry them between machines:
 ```bash
 export HELIX_BRAIN_DIR=~/dotfiles/brain
 ```
+
+### Sync
+
+For a first-class backup instead, point Helix at a dedicated git repository
+(GitHub, GitLab, a private host — anything `git push`/`git fetch` can reach)
+and it will manage the brain directory as a git repo for you:
+
+```bash
+# On your first machine
+helix sync init git@github.com:you/helix-brain.git
+helix sync push
+
+# On any other machine
+helix sync clone git@github.com:you/helix-brain.git
+
+# Later, on either machine
+helix sync push   # back up local changes
+helix sync pull   # bring in changes made elsewhere
+```
+
+`push` commits and pushes anything new; `pull`/`clone` fetch the remote and
+merge it into whatever conventions already exist locally, then regenerate
+`INDEX.md` from the merged result. Conventions that only exist on one side are
+kept automatically. When the same convention name has diverged on both sides,
+`--strategy` controls what happens:
+
+- `keep-local` (default) — leave the local file untouched.
+- `overwrite` — replace the local file with the remote version.
+- `rename-conflict` — keep the local file and save the remote version
+  alongside it as `<name>-remote.md`, so nothing is lost.
+
+Sync uses your existing git/SSH credentials (or `gh`'s), so it works with
+whatever authentication you already have configured for the remote.
 
 ## MCP server
 

@@ -10,6 +10,7 @@ from .commands import (
     cmd_update,
     cmd_version,
 )
+from .sync import cmd_sync_clone, cmd_sync_init, cmd_sync_pull, cmd_sync_push
 
 __all__ = [
     "app",
@@ -19,6 +20,10 @@ __all__ = [
     "cmd_list",
     "cmd_recall",
     "cmd_remember",
+    "cmd_sync_clone",
+    "cmd_sync_init",
+    "cmd_sync_pull",
+    "cmd_sync_push",
     "cmd_uninstall",
     "cmd_update",
     "cmd_version",
