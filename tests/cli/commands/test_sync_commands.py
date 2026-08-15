@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -8,20 +7,12 @@ from helix.cli import cmd_sync_clone, cmd_sync_init, cmd_sync_pull, cmd_sync_pus
 from helix.core import Brain, Settings, SyncError
 
 
-@pytest.fixture
-def remote_repo(tmp_path: Path) -> str:
-    """A bare git repo, usable as a sync remote without any network access."""
-    remote = tmp_path / "remote.git"
-    subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
-    return str(remote)
-
-
 def test_cmd_sync_init_echoes_configured_remote(
-    remote_repo: str, capsys: pytest.CaptureFixture[str]
+    remote_repository: str, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    cmd_sync_init(remote_url=remote_repo)
+    cmd_sync_init(remote_url=remote_repository)
     captured = capsys.readouterr()
-    assert f"Configured 'origin' -> {remote_repo}" in captured.out
+    assert f"Configured 'origin' -> {remote_repository}" in captured.out
 
 
 def test_cmd_sync_init_reports_git_failures(
@@ -39,9 +30,9 @@ def test_cmd_sync_init_reports_git_failures(
 
 @pytest.mark.usefixtures("_remember_convention")
 def test_cmd_sync_push_echoes_success(
-    remote_repo: str, capsys: pytest.CaptureFixture[str]
+    remote_repository: str, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    cmd_sync_init(remote_url=remote_repo)
+    cmd_sync_init(remote_url=remote_repository)
     capsys.readouterr()
     cmd_sync_push(message="Update conventions")
     captured = capsys.readouterr()
@@ -60,9 +51,9 @@ def test_cmd_sync_push_without_init_exits_with_error(
 
 @pytest.mark.usefixtures("_remember_convention")
 def test_cmd_sync_clone_reports_merge_summary(
-    remote_repo: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    remote_repository: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    cmd_sync_init(remote_url=remote_repo)
+    cmd_sync_init(remote_url=remote_repository)
     cmd_sync_push(message="Update conventions")
     capsys.readouterr()
 
@@ -70,7 +61,7 @@ def test_cmd_sync_clone_reports_merge_summary(
     fresh_brain = Brain()
     assert not fresh_brain.is_initialized
 
-    cmd_sync_clone(remote_url=remote_repo)
+    cmd_sync_clone(remote_url=remote_repository)
     captured = capsys.readouterr()
     assert "conv-a.md" in captured.out
     assert (fresh_brain.conventions / "conv-a.md").exists()
@@ -88,13 +79,13 @@ def test_cmd_sync_pull_without_init_exits_with_error(
 
 @pytest.mark.usefixtures("_remember_convention")
 def test_cmd_sync_pull_echoes_merge_summary(
-    remote_repo: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    remote_repository: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    cmd_sync_init(remote_url=remote_repo)
+    cmd_sync_init(remote_url=remote_repository)
     cmd_sync_push(message="Update conventions")
 
     Settings.HOME_DIRECTORY = tmp_path / "other-host"
-    cmd_sync_clone(remote_url=remote_repo)
+    cmd_sync_clone(remote_url=remote_repository)
     Brain().remember(name="conv-b", body="Body B.", tags=["typescript"])
     cmd_sync_push(message="Update conventions")
 

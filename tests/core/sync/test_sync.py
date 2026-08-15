@@ -15,24 +15,10 @@ from helix.core import (
 )
 
 
-@pytest.fixture
-def remote_repo(tmp_path: Path) -> str:
-    """A bare git repo, usable as a sync remote without any network access."""
-    remote = tmp_path / "remote.git"
-    subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
-    return str(remote)
-
-
-@pytest.fixture
-def _remember_convention(brain: Brain) -> None:
-    brain.initialize()
-    brain.remember(name="conv-a", body="Body A.", tags=["python"])
-
-
-def _remote_files(remote_repo: str) -> list[str]:
+def _remote_files(remote_repository: str) -> list[str]:
     result = subprocess.run(
         ["git", "ls-tree", "--name-only", "-r", "main", "--", "conventions"],
-        cwd=remote_repo,
+        cwd=remote_repository,
         check=True,
         capture_output=True,
         text=True,
@@ -40,13 +26,13 @@ def _remote_files(remote_repo: str) -> list[str]:
     return sorted(Path(p).name for p in result.stdout.splitlines())
 
 
-def test_sync_init_creates_git_repo(remote_repo: str) -> None:
-    sync_init(remote_repo)
+def test_sync_init_creates_git_repo(remote_repository: str) -> None:
+    sync_init(remote_repository)
     assert (Settings.HELIX_BRAIN / ".git").is_dir()
 
 
-def test_sync_init_configures_origin_remote(remote_repo: str) -> None:
-    sync_init(remote_repo)
+def test_sync_init_configures_origin_remote(remote_repository: str) -> None:
+    sync_init(remote_repository)
     result = subprocess.run(
         ["git", "remote", "get-url", "origin"],
         cwd=Settings.HELIX_BRAIN,
@@ -54,14 +40,16 @@ def test_sync_init_configures_origin_remote(remote_repo: str) -> None:
         capture_output=True,
         text=True,
     )
-    assert result.stdout.strip() == remote_repo
+    assert result.stdout.strip() == remote_repository
 
 
-def test_sync_init_is_idempotent_and_updates_url(remote_repo: str, tmp_path: Path) -> None:
+def test_sync_init_is_idempotent_and_updates_url(
+    remote_repository: str, tmp_path: Path
+) -> None:
     other_remote = tmp_path / "other.git"
     subprocess.run(["git", "init", "--bare", "-q", str(other_remote)], check=True)
 
-    sync_init(remote_repo)
+    sync_init(remote_repository)
     sync_init(str(other_remote))
 
     result = subprocess.run(
@@ -89,10 +77,10 @@ def test_sync_push_requires_something_to_push() -> None:
 
 
 @pytest.mark.usefixtures("_remember_convention")
-def test_sync_push_uploads_conventions(remote_repo: str) -> None:
-    sync_init(remote_repo)
+def test_sync_push_uploads_conventions(remote_repository: str) -> None:
+    sync_init(remote_repository)
     sync_push()
-    assert _remote_files(remote_repo) == ["conv-a.md"]
+    assert _remote_files(remote_repository) == ["conv-a.md"]
 
 
 def test_sync_pull_requires_init() -> None:
@@ -100,8 +88,8 @@ def test_sync_pull_requires_init() -> None:
         sync_pull()
 
 
-def test_sync_pull_against_empty_remote_is_a_noop(remote_repo: str) -> None:
-    sync_init(remote_repo)
+def test_sync_pull_against_empty_remote_is_a_noop(remote_repository: str) -> None:
+    sync_init(remote_repository)
     result = sync_pull()
     assert result.summary() == "already up to date"
 
@@ -113,10 +101,12 @@ def test_sync_pull_raises_on_unreachable_remote(tmp_path: Path) -> None:
 
 
 def test_sync_pull_is_a_noop_when_remote_has_no_conventions_dir(
-    remote_repo: str, brain: Brain
+    remote_repository: str, brain: Brain
 ) -> None:
     other_clone = brain.conventions.parent.parent / "unrelated-clone"
-    subprocess.run(["git", "clone", "-q", remote_repo, str(other_clone)], check=True)
+    subprocess.run(
+        ["git", "clone", "-q", remote_repository, str(other_clone)], check=True
+    )
     (other_clone / "README.md").write_text("Not a helix brain.\n")
     subprocess.run(["git", "add", "-A"], cwd=other_clone, check=True)
     subprocess.run(
@@ -124,37 +114,45 @@ def test_sync_pull_is_a_noop_when_remote_has_no_conventions_dir(
         cwd=other_clone,
         check=True,
     )
-    subprocess.run(["git", "push", "origin", "HEAD:refs/heads/main"], cwd=other_clone, check=True)
+    subprocess.run(
+        ["git", "push", "origin", "HEAD:refs/heads/main"], cwd=other_clone, check=True
+    )
 
-    sync_init(remote_repo)
+    sync_init(remote_repository)
     result = sync_pull()
     assert result.summary() == "already up to date"
 
 
 @pytest.mark.usefixtures("_remember_convention")
-def test_sync_push_raises_on_diverged_unrelated_history(remote_repo: str, tmp_path: Path) -> None:
-    sync_init(remote_repo)
+def test_sync_push_raises_on_diverged_unrelated_history(
+    remote_repository: str, tmp_path: Path
+) -> None:
+    sync_init(remote_repository)
     sync_push()
 
     Settings.HOME_DIRECTORY = tmp_path / "other-host"
     other_brain = Brain()
     other_brain.initialize()
     other_brain.remember(name="conv-b", body="Body B.", tags=["typescript"])
-    sync_init(remote_repo)  # init only: no fetch/merge, so this host's history is unrelated
+    sync_init(
+        remote_repository
+    )  # init only: no fetch/merge, so this host's history is unrelated
     with pytest.raises(SyncError):
         sync_push()
 
 
 @pytest.mark.usefixtures("_remember_convention")
-def test_sync_clone_restores_conventions_on_a_fresh_host(remote_repo: str, tmp_path: Path) -> None:
-    sync_init(remote_repo)
+def test_sync_clone_restores_conventions_on_a_fresh_host(
+    remote_repository: str, tmp_path: Path
+) -> None:
+    sync_init(remote_repository)
     sync_push()
 
     Settings.HOME_DIRECTORY = tmp_path / "other-host"
     fresh_brain = Brain()
     assert not fresh_brain.is_initialized
 
-    result = sync_clone(remote_repo)
+    result = sync_clone(remote_repository)
 
     assert result.added == ["conv-a.md"]
     assert (fresh_brain.conventions / "conv-a.md").exists()
@@ -166,16 +164,16 @@ def test_sync_clone_restores_conventions_on_a_fresh_host(remote_repo: str, tmp_p
 
 @pytest.mark.usefixtures("_remember_convention")
 def test_sync_pull_reconciles_conflicting_convention_per_strategy(
-    remote_repo: str, brain: Brain, tmp_path: Path
+    remote_repository: str, brain: Brain, tmp_path: Path
 ) -> None:
     brain.remember(name="shared", body="Local version.", tags=["python"])
-    sync_init(remote_repo)
+    sync_init(remote_repository)
     sync_push()
 
     # A second host pushes a divergent edit of the same convention.
     Settings.HOME_DIRECTORY = tmp_path / "other-host"
     other_brain = Brain()
-    sync_clone(remote_repo)
+    sync_clone(remote_repository)
     other_brain.remember(name="shared", body="Remote version.", tags=["python"])
     sync_push()
 
@@ -199,13 +197,15 @@ def test_sync_pull_reconciles_conflicting_convention_per_strategy(
 
 
 @pytest.mark.usefixtures("_remember_convention")
-def test_sync_pull_rebuilds_index(remote_repo: str, brain: Brain, tmp_path: Path) -> None:
-    sync_init(remote_repo)
+def test_sync_pull_rebuilds_index(
+    remote_repository: str, brain: Brain, tmp_path: Path
+) -> None:
+    sync_init(remote_repository)
     sync_push()
 
     Settings.HOME_DIRECTORY = tmp_path / "other-host"
     other_brain = Brain()
-    sync_clone(remote_repo)
+    sync_clone(remote_repository)
     other_brain.remember(name="conv-b", body="Body B.", tags=["typescript"])
     sync_push()
 
@@ -216,13 +216,15 @@ def test_sync_pull_rebuilds_index(remote_repo: str, brain: Brain, tmp_path: Path
 
 
 @pytest.mark.usefixtures("_remember_convention")
-def test_sync_push_after_pull_merge_is_a_fast_forward(remote_repo: str, tmp_path: Path) -> None:
-    sync_init(remote_repo)
+def test_sync_push_after_pull_merge_is_a_fast_forward(
+    remote_repository: str, tmp_path: Path
+) -> None:
+    sync_init(remote_repository)
     sync_push()
 
     Settings.HOME_DIRECTORY = tmp_path / "other-host"
     other_brain = Brain()
-    sync_clone(remote_repo)
+    sync_clone(remote_repository)
     other_brain.remember(name="conv-b", body="Body B.", tags=["typescript"])
     sync_push()
 
@@ -230,4 +232,4 @@ def test_sync_push_after_pull_merge_is_a_fast_forward(remote_repo: str, tmp_path
     sync_pull()
     # The merge commit has origin as a parent, so this push is a fast-forward and won't raise.
     sync_push()
-    assert _remote_files(remote_repo) == ["conv-a.md", "conv-b.md"]
+    assert _remote_files(remote_repository) == ["conv-a.md", "conv-b.md"]
