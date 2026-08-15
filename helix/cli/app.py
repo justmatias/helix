@@ -2,8 +2,7 @@ import typer
 
 from helix.core import Brain
 
-from .commands import COMMANDS
-from .sync import SYNC_COMMANDS
+from .commands import COMMANDS, SYNC_COMMANDS
 
 app = typer.Typer()
 sync_app = typer.Typer(help="Backup and sync conventions with a remote git repository.")

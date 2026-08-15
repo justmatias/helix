@@ -30,7 +30,7 @@ def test_cmd_sync_init_reports_git_failures(
     def _raise(_remote_url: str) -> None:
         raise SyncError("git init failed")
 
-    monkeypatch.setattr("helix.cli.sync.sync_init", _raise)
+    monkeypatch.setattr("helix.cli.commands.sync_init", _raise)
     with pytest.raises(typer.Exit) as exc_info:
         cmd_sync_init(remote_url="https://example.invalid/repo.git")
     assert exc_info.value.exit_code == 1
@@ -112,7 +112,7 @@ def test_cmd_sync_clone_reports_git_failures(
     def _raise(_remote_url: str, strategy: object) -> None:
         raise SyncError("git clone failed")
 
-    monkeypatch.setattr("helix.cli.sync.sync_clone", _raise)
+    monkeypatch.setattr("helix.cli.commands.sync_clone", _raise)
     with pytest.raises(typer.Exit) as exc_info:
         cmd_sync_clone(remote_url="https://example.invalid/repo.git")
     assert exc_info.value.exit_code == 1
