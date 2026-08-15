@@ -1,4 +1,5 @@
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -13,17 +14,6 @@ from helix.core import (
     sync_pull,
     sync_push,
 )
-
-
-def _remote_files(remote_repository: str) -> list[str]:
-    result = subprocess.run(
-        ["git", "ls-tree", "--name-only", "-r", "main", "--", "conventions"],
-        cwd=remote_repository,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return sorted(Path(p).name for p in result.stdout.splitlines())
 
 
 def test_sync_init_creates_git_repo(remote_repository: str) -> None:
@@ -77,10 +67,12 @@ def test_sync_push_requires_something_to_push() -> None:
 
 
 @pytest.mark.usefixtures("_remember_convention")
-def test_sync_push_uploads_conventions(remote_repository: str) -> None:
+def test_sync_push_uploads_conventions(
+    remote_repository: str, remote_files: Callable[[], list[str]]
+) -> None:
     sync_init(remote_repository)
     sync_push()
-    assert _remote_files(remote_repository) == ["conv-a.md"]
+    assert remote_files() == ["conv-a.md"]
 
 
 def test_sync_pull_requires_init() -> None:
@@ -217,7 +209,7 @@ def test_sync_pull_rebuilds_index(
 
 @pytest.mark.usefixtures("_remember_convention")
 def test_sync_push_after_pull_merge_is_a_fast_forward(
-    remote_repository: str, tmp_path: Path
+    remote_repository: str, remote_files: Callable[[], list[str]], tmp_path: Path
 ) -> None:
     sync_init(remote_repository)
     sync_push()
@@ -232,4 +224,4 @@ def test_sync_push_after_pull_merge_is_a_fast_forward(
     sync_pull()
     # The merge commit has origin as a parent, so this push is a fast-forward and won't raise.
     sync_push()
-    assert _remote_files(remote_repository) == ["conv-a.md", "conv-b.md"]
+    assert remote_files() == ["conv-a.md", "conv-b.md"]
