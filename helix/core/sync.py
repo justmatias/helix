@@ -8,9 +8,11 @@ from .conventions import Brain
 from .settings import Settings
 
 SYNC_BRANCH = "main"
-NOT_CONFIGURED_MESSAGE = "Brain is not set up for sync. Run `helix sync init <remote-url>` first."
+NOT_CONFIGURED_MESSAGE = (
+    "Brain is not set up for sync. Run `helix sync init <remote-url>` first."
+)
 
-_COMMIT_ENV = {
+COMMIT_METADATA = {
     "GIT_AUTHOR_NAME": "helix",
     "GIT_AUTHOR_EMAIL": "helix@localhost",
     "GIT_COMMITTER_NAME": "helix",
@@ -57,7 +59,12 @@ def _run_git(
 ) -> subprocess.CompletedProcess[str]:
     full_env = {**os.environ, **env} if env else None
     result = subprocess.run(
-        ["git", *args], cwd=cwd, check=False, capture_output=True, text=True, env=full_env
+        ["git", *args],
+        cwd=cwd,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=full_env,
     )
     if check and result.returncode != 0:
         raise SyncError(result.stderr.strip() or f"git {' '.join(args)} failed")
@@ -91,8 +98,10 @@ def sync_push(message: str = "Update conventions") -> None:
     _run_git("add", "-A", cwd=brain_dir)
     status = _run_git("status", "--porcelain", cwd=brain_dir).stdout
     if status.strip():
-        _run_git("commit", "-m", message, cwd=brain_dir, env=_COMMIT_ENV)
-    elif _run_git("rev-parse", "--verify", "-q", "HEAD", cwd=brain_dir, check=False).returncode:
+        _run_git("commit", "-m", message, cwd=brain_dir, env=COMMIT_METADATA)
+    elif _run_git(
+        "rev-parse", "--verify", "-q", "HEAD", cwd=brain_dir, check=False
+    ).returncode:
         raise SyncError("Nothing to push yet — save a convention first.")
 
     _run_git("push", "-u", "origin", f"HEAD:refs/heads/{SYNC_BRANCH}", cwd=brain_dir)
@@ -118,7 +127,9 @@ def sync_pull(strategy: MergeStrategy = MergeStrategy.KEEP_LOCAL) -> MergeResult
     return result
 
 
-def sync_clone(remote_url: str, strategy: MergeStrategy = MergeStrategy.KEEP_LOCAL) -> MergeResult:
+def sync_clone(
+    remote_url: str, strategy: MergeStrategy = MergeStrategy.KEEP_LOCAL
+) -> MergeResult:
     """Configure origin as ``remote_url`` and pull, merging into any existing local conventions."""
     sync_init(remote_url)
     return sync_pull(strategy)
@@ -147,7 +158,9 @@ def _merge_from_fetch_head(brain: Brain, strategy: MergeStrategy) -> MergeResult
 
     for rel_path in _remote_convention_paths(brain_dir):
         name = Path(rel_path).name
-        remote_content = _run_git("show", f"FETCH_HEAD:{rel_path}", cwd=brain_dir).stdout
+        remote_content = _run_git(
+            "show", f"FETCH_HEAD:{rel_path}", cwd=brain_dir
+        ).stdout
         local_file = brain.conventions / name
 
         if not local_file.exists():
@@ -182,6 +195,12 @@ def _commit_merge(message: str) -> None:
     parents += ["-p", "FETCH_HEAD"]
 
     commit = _run_git(
-        "commit-tree", tree, *parents, "-m", message, cwd=brain_dir, env=_COMMIT_ENV
+        "commit-tree",
+        tree,
+        *parents,
+        "-m",
+        message,
+        cwd=brain_dir,
+        env=COMMIT_METADATA,
     ).stdout.strip()
     _run_git("update-ref", "HEAD", commit, cwd=brain_dir)
