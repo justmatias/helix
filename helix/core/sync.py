@@ -71,15 +71,12 @@ def _run_git(
     return result
 
 
-def _is_configured(brain_dir: Path) -> bool:
-    return (brain_dir / ".git").exists()
-
-
 def sync_init(remote_url: str) -> None:
     """Make the brain directory a git repo (if needed) and point origin at ``remote_url``."""
     Brain().initialize()
     brain_dir = Settings.HELIX_BRAIN
-    if not _is_configured(brain_dir):
+    is_configured = (brain_dir / ".git").exists()
+    if not is_configured(brain_dir):
         _run_git("init", "-b", SYNC_BRANCH, cwd=brain_dir)
 
     remotes = _run_git("remote", cwd=brain_dir).stdout.split()
@@ -92,7 +89,8 @@ def sync_init(remote_url: str) -> None:
 def sync_push(message: str = "Update conventions") -> None:
     """Commit any local changes and push them to origin."""
     brain_dir = Settings.HELIX_BRAIN
-    if not _is_configured(brain_dir):
+    is_configured = (brain_dir / ".git").exists()
+    if not is_configured:
         raise SyncError(NOT_CONFIGURED_MESSAGE)
 
     _run_git("add", "-A", cwd=brain_dir)
@@ -110,7 +108,8 @@ def sync_push(message: str = "Update conventions") -> None:
 def sync_pull(strategy: MergeStrategy = MergeStrategy.KEEP_LOCAL) -> MergeResult:
     """Fetch origin and merge its conventions into the local brain per ``strategy``."""
     brain_dir = Settings.HELIX_BRAIN
-    if not _is_configured(brain_dir):
+    is_configured = (brain_dir / ".git").exists()
+    if not is_configured:
         raise SyncError(NOT_CONFIGURED_MESSAGE)
 
     brain = Brain()
