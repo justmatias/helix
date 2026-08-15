@@ -24,6 +24,15 @@ from .installer import (
     uninstall_mcp_config,
 )
 from .settings import Settings
+from .sync import (
+    MergeResult,
+    MergeStrategy,
+    SyncError,
+    sync_clone,
+    sync_init,
+    sync_pull,
+    sync_push,
+)
 from .updater import update, update_command
 
 __all__ = [
@@ -39,15 +48,22 @@ __all__ = [
     "Convention",
     "InvalidConfigError",
     "McpConfigFormat",
+    "MergeResult",
+    "MergeStrategy",
     "Scope",
     "Settings",
     "SnippetBlock",
+    "SyncError",
     "clients",
     "detect_installed_clients",
     "detect_snippet_blocks",
     "install",
     "install_hook",
     "install_mcp_config",
+    "sync_clone",
+    "sync_init",
+    "sync_pull",
+    "sync_push",
     "uninstall",
     "uninstall_hook",
     "uninstall_mcp_config",

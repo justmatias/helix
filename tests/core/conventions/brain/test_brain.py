@@ -224,3 +224,35 @@ def test_reindex_refreshes_index_line(brain: Brain) -> None:
 def test_reindex_returns_false_for_invalid_file(brain: Brain) -> None:
     (brain.conventions / "broken.md").write_text("---\ntags: [python]\n---\nBody.\n")
     assert not brain.reindex("broken")
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_rebuild_index_reflects_files_written_directly_to_disk(brain: Brain) -> None:
+    (brain.conventions / "manual.md").write_text(
+        "---\nname: manual\ntags: [python]\n---\n\nAdded outside of remember().\n"
+    )
+    brain.rebuild_index()
+    assert "manual" in brain.index.read_text()
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_rebuild_index_drops_entries_for_deleted_files(brain: Brain) -> None:
+    brain.remember(name="to-delete", body="Delete me.", tags=["misc"])
+    (brain.conventions / "to-delete.md").unlink()
+    brain.rebuild_index()
+    assert "to-delete" not in brain.index.read_text()
+
+
+@pytest.mark.usefixtures("_initialize_brain")
+def test_rebuild_index_skips_invalid_convention_files(brain: Brain) -> None:
+    brain.remember(name="valid", body="Body.", tags=["python"])
+    (brain.conventions / "broken.md").write_text("---\ntags: [python]\n---\nBody.\n")
+    brain.rebuild_index()
+    assert "valid" in brain.index.read_text()
+    assert "broken" not in brain.index.read_text()
+
+
+def test_rebuild_index_creates_conventions_dir_when_missing(brain: Brain) -> None:
+    assert not brain.conventions.is_dir()
+    brain.rebuild_index()
+    assert brain.conventions.is_dir()

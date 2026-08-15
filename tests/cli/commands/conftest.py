@@ -1,3 +1,4 @@
+import subprocess
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
@@ -6,6 +7,14 @@ import pytest
 import typer
 
 from helix.core import Brain, Client, Scope, Settings, clients, install
+
+
+@pytest.fixture
+def remote_repository(tmp_path: Path) -> str:
+    """A bare git repository, usable as a sync remote without any network access."""
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
+    return str(remote)
 
 
 @pytest.fixture

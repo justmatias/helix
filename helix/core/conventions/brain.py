@@ -4,6 +4,8 @@ from helix.core.settings import Settings
 
 from .convention import Convention
 
+INDEX_HEADER = "# Helix Convention Index\n\n"
+
 
 class Brain:
     @property
@@ -29,7 +31,15 @@ class Brain:
     def initialize(self) -> None:
         self.conventions.mkdir(parents=True, exist_ok=True)
         if not self.is_initialized:
-            self.index.write_text("# Helix Convention Index\n\n")
+            self.index.write_text(INDEX_HEADER)
+
+    def rebuild_index(self) -> None:
+        """Regenerate INDEX.md from every convention file currently on disk."""
+        self.conventions.mkdir(parents=True, exist_ok=True)
+        content = INDEX_HEADER + "".join(
+            convention.index_line() + "\n" for convention in self._load_conventions()
+        )
+        self.index.write_text(content)
 
     def remember(self, *, name: str, body: str, tags: list[str]) -> Path:
         convention = Convention(name=name, body=body, tags=tags)
