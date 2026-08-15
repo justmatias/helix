@@ -51,7 +51,7 @@ class MergeResult:
         return "; ".join(parts) if parts else "already up to date"
 
 
-def _run_git(
+def run_git(
     *args: str,
     cwd: Path,
     check: bool = True,
@@ -74,55 +74,83 @@ def _run_git(
 def sync_init(remote_url: str) -> None:
     """Make the brain directory a git repo (if needed) and point origin at ``remote_url``."""
     Brain().initialize()
-    brain_dir = Settings.HELIX_BRAIN
-    is_configured = (brain_dir / ".git").exists()
-    if not is_configured(brain_dir):
-        _run_git("init", "-b", SYNC_BRANCH, cwd=brain_dir)
+    is_configured = (Settings.HELIX_BRAIN / ".git").exists()
+    if not is_configured:
+        run_git("init", "-b", SYNC_BRANCH, cwd=Settings.HELIX_BRAIN)
 
-    remotes = _run_git("remote", cwd=brain_dir).stdout.split()
+    remotes = run_git("remote", cwd=Settings.HELIX_BRAIN).stdout.split()
     if "origin" in remotes:
-        _run_git("remote", "set-url", "origin", remote_url, cwd=brain_dir)
+        run_git("remote", "set-url", "origin", remote_url, cwd=Settings.HELIX_BRAIN)
     else:
-        _run_git("remote", "add", "origin", remote_url, cwd=brain_dir)
+        run_git("remote", "add", "origin", remote_url, cwd=Settings.HELIX_BRAIN)
 
 
 def sync_push(message: str = "Update conventions") -> None:
     """Commit any local changes and push them to origin."""
-    brain_dir = Settings.HELIX_BRAIN
-    is_configured = (brain_dir / ".git").exists()
+    is_configured = (Settings.HELIX_BRAIN / ".git").exists()
     if not is_configured:
         raise SyncError(NOT_CONFIGURED_MESSAGE)
 
-    _run_git("add", "-A", cwd=brain_dir)
-    status = _run_git("status", "--porcelain", cwd=brain_dir).stdout
+    run_git("add", "-A", cwd=Settings.HELIX_BRAIN)
+    status = run_git("status", "--porcelain", cwd=Settings.HELIX_BRAIN).stdout
     if status.strip():
-        _run_git("commit", "-m", message, cwd=brain_dir, env=COMMIT_METADATA)
-    elif _run_git(
-        "rev-parse", "--verify", "-q", "HEAD", cwd=brain_dir, check=False
+        run_git("commit", "-m", message, cwd=Settings.HELIX_BRAIN, env=COMMIT_METADATA)
+    elif run_git(
+        "rev-parse", "--verify", "-q", "HEAD", cwd=Settings.HELIX_BRAIN, check=False
     ).returncode:
         raise SyncError("Nothing to push yet — save a convention first.")
 
-    _run_git("push", "-u", "origin", f"HEAD:refs/heads/{SYNC_BRANCH}", cwd=brain_dir)
+    run_git(
+        "push",
+        "-u",
+        "origin",
+        f"HEAD:refs/heads/{SYNC_BRANCH}",
+        cwd=Settings.HELIX_BRAIN,
+    )
 
 
 def sync_pull(strategy: MergeStrategy = MergeStrategy.KEEP_LOCAL) -> MergeResult:
     """Fetch origin and merge its conventions into the local brain per ``strategy``."""
-    brain_dir = Settings.HELIX_BRAIN
-    is_configured = (brain_dir / ".git").exists()
+    is_configured = (Settings.HELIX_BRAIN / ".git").exists()
     if not is_configured:
         raise SyncError(NOT_CONFIGURED_MESSAGE)
 
     brain = Brain()
     brain.initialize()
 
-    fetch = _run_git("fetch", "origin", SYNC_BRANCH, cwd=brain_dir, check=False)
+    fetch = run_git(
+        "fetch", "origin", SYNC_BRANCH, cwd=Settings.HELIX_BRAIN, check=False
+    )
     if fetch.returncode:
         if "couldn't find remote ref" in fetch.stderr:
             return MergeResult()
         raise SyncError(fetch.stderr.strip() or "git fetch failed")
 
     result = _merge_from_fetch_head(brain, strategy)
-    _commit_merge("Merge conventions from origin")
+
+    run_git("add", "-A", cwd=Settings.HELIX_BRAIN)
+    status = run_git("status", "--porcelain", cwd=Settings.HELIX_BRAIN).stdout
+    if not status.strip():
+        return result
+
+    tree = run_git("write-tree", cwd=Settings.HELIX_BRAIN).stdout.strip()
+    head = run_git(
+        "rev-parse", "--verify", "-q", "HEAD", cwd=Settings.HELIX_BRAIN, check=False
+    )
+    parents = ["-p", head.stdout.strip()] if head.returncode == 0 else []
+    parents += ["-p", "FETCH_HEAD"]
+
+    commit = run_git(
+        "commit-tree",
+        tree,
+        *parents,
+        "-m",
+        "Merge conventions from origin",
+        cwd=Settings.HELIX_BRAIN,
+        env=COMMIT_METADATA,
+    ).stdout.strip()
+    run_git("update-ref", "HEAD", commit, cwd=Settings.HELIX_BRAIN)
+
     return result
 
 
@@ -134,8 +162,8 @@ def sync_clone(
     return sync_pull(strategy)
 
 
-def _remote_convention_paths(brain_dir: Path) -> list[str]:
-    result = _run_git(
+def get_remote_convention_paths(brain_dir: Path) -> list[str]:
+    result = run_git(
         "ls-tree",
         "--name-only",
         "-r",
@@ -155,11 +183,9 @@ def _merge_from_fetch_head(brain: Brain, strategy: MergeStrategy) -> MergeResult
     brain.conventions.mkdir(parents=True, exist_ok=True)
     result = MergeResult()
 
-    for rel_path in _remote_convention_paths(brain_dir):
-        name = Path(rel_path).name
-        remote_content = _run_git(
-            "show", f"FETCH_HEAD:{rel_path}", cwd=brain_dir
-        ).stdout
+    for path in get_remote_convention_paths(brain_dir):
+        name = Path(path).name
+        remote_content = run_git("show", f"FETCH_HEAD:{path}", cwd=brain_dir).stdout
         local_file = brain.conventions / name
 
         if not local_file.exists():
@@ -179,27 +205,3 @@ def _merge_from_fetch_head(brain: Brain, strategy: MergeStrategy) -> MergeResult
 
     brain.rebuild_index()
     return result
-
-
-def _commit_merge(message: str) -> None:
-    brain_dir = Settings.HELIX_BRAIN
-    _run_git("add", "-A", cwd=brain_dir)
-    status = _run_git("status", "--porcelain", cwd=brain_dir).stdout
-    if not status.strip():
-        return
-
-    tree = _run_git("write-tree", cwd=brain_dir).stdout.strip()
-    head = _run_git("rev-parse", "--verify", "-q", "HEAD", cwd=brain_dir, check=False)
-    parents = ["-p", head.stdout.strip()] if head.returncode == 0 else []
-    parents += ["-p", "FETCH_HEAD"]
-
-    commit = _run_git(
-        "commit-tree",
-        tree,
-        *parents,
-        "-m",
-        message,
-        cwd=brain_dir,
-        env=COMMIT_METADATA,
-    ).stdout.strip()
-    _run_git("update-ref", "HEAD", commit, cwd=brain_dir)
