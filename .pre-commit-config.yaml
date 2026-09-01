@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.25
+    rev: '0.26'
     hooks:
       - id: validate-pyproject
 
@@ -17,7 +17,7 @@ repos:
       - id: gitleaks
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.16.3'
+    rev: 'v0.16.5'
     hooks:
       - id: ruff-check
         name: ruff
@@ -35,7 +35,7 @@ repos:
       - id: hookpin
 
   - repo: https://github.com/pylint-dev/pylint
-    rev: v4.0.7
+    rev: v4.0.8
     hooks:
       - id: pylint
         types: [python]
@@ -47,7 +47,7 @@ repos:
           - pydantic-settings==2.14.2
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.0
+    rev: v2.3.1
     hooks:
       - id: mypy
         additional_dependencies:
